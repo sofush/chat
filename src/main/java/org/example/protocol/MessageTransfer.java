@@ -59,10 +59,9 @@ public class MessageTransfer {
         if (read == -1)
             throw new IOException("End of stream.");
 
-        return new MessageHeader(
-            buffer.getInt(),
-            MessageType.from(buffer.getInt()),
-            Instant.ofEpochMilli(buffer.getLong())
-        );
+        int length = buffer.getInt();
+        MessageType type = MessageType.from(buffer.getInt());
+        Instant timestamp = Instant.ofEpochMilli(buffer.getLong());
+        return new MessageHeader(length, type, timestamp);
     }
 }
