@@ -51,6 +51,10 @@ public class Message {
         this.content = newBuffer;
     }
 
+    public MessageArguments getArguments() {
+        return new MessageArguments(this);
+    }
+
     public MessageHeader getHeader() {
         return this.header;
     }
