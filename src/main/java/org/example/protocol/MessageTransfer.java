@@ -14,9 +14,8 @@ public class MessageTransfer {
      * @param message The message to write.
      */
     public static void send(Socket socket, Message message) throws IOException {
-        int contentLength = message.content.limit() - message.content.position();
-        message.header.finish(contentLength);
         // Prepare the header for sending.
+        message.header.finish(message.content.capacity());
 
         // Put the header and content bytes into a buffer.
         var buffer = ByteBuffer.allocate(message.header.length);
