@@ -19,8 +19,8 @@ public class MessageTransfer {
 
         // Put the header and content bytes into a buffer.
         var buffer = ByteBuffer.allocate(message.header.length);
-        buffer.putInt(message.header.type.toInt());
         buffer.putInt(message.header.length);
+        buffer.putInt(message.header.type.toInt());
         buffer.putLong(message.header.timestamp.toEpochMilli());
         buffer.put(message.content.clear());
 
