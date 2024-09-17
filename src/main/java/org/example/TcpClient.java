@@ -1,6 +1,8 @@
 package org.example;
 
 import org.example.protocol.Message;
+import org.example.protocol.MessageTransfer;
+import org.example.protocol.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,31 +25,15 @@ public class TcpClient implements Runnable, Closeable {
         this.logger.info("Client has connected to the server.");
     }
 
-    private void sleep() {
-        try {
-            long ms = (long)(Math.random() * 250.0);
-            Thread.sleep(ms);
-        } catch (InterruptedException ignored) {}
-    }
-
     @Override
     public void run() {
-        while (!Thread.interrupted()) {
-            this.sleep();
-            var message = new Message();
-
-            try {
-                message.send(this.socket);
-            } catch (IOException e) {
-                this.logger.error("Could not send message to server.", e);
-                break;
-            }
-        }
+        var message = Message.create(MessageType.BROADCAST);
+        message.addArgument("Hello, world!");
 
         try {
-            this.close();
+            MessageTransfer.send(this.socket, message);
         } catch (IOException e) {
-            this.logger.error("Could not close TCP client.", e);
+            this.logger.error("Could not send message to server.", e);
         }
     }
 

@@ -1,6 +1,9 @@
 package org.example;
 
 import org.example.protocol.Message;
+import org.example.protocol.MessageArguments;
+import org.example.protocol.MessageTransfer;
+import org.example.protocol.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +21,17 @@ public class ClientHandler implements Runnable, Closeable {
     }
 
     public void handleMessage(Message message) {
-        switch (message.getType()) {
+        MessageType type = message.getHeader().getType();
+        this.logger.info("Got message of type " + type + ".");
+
+        MessageArguments args = message.getArguments();
+
+        switch (message.getHeader().getType()) {
+            case BROADCAST, UNICAST -> {
+                String arg = (String) args.nth(0);
+                this.logger.debug("Message contents: " + arg);
+            }
+            case FILE -> {}
         }
     }
 
@@ -26,7 +39,8 @@ public class ClientHandler implements Runnable, Closeable {
     public void run() {
         while (!Thread.interrupted() && client.isConnected() && !client.isClosed()) {
             try {
-                Message message = Message.receive(client);
+                Message message = MessageTransfer.receive(client);
+                if (message == null) continue;
                 this.handleMessage(message);
             } catch (IOException e) {
                 this.logger.info("Client disconnected.");
