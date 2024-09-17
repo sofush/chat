@@ -59,7 +59,7 @@ public class MessageTransfer {
         var buffer = ByteBuffer.allocate(MessageHeader.SIZE);
         int read = socket.getInputStream().readNBytes(buffer.array(), 0, buffer.capacity());
 
-        if (read == -1)
+        if (read < buffer.capacity())
             throw new IOException("End of stream.");
 
         int length = buffer.getInt();
