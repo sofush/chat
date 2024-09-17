@@ -43,9 +43,10 @@ public class Message {
 
     private void addBytes(ByteBuffer buffer) {
         int bufferLength = buffer.limit() - buffer.position();
-        int newCapacity = this.content.limit() - this.content.position() + bufferLength;
+        int newCapacity = this.content.limit() - this.content.position() + bufferLength + 4;
         ByteBuffer newBuffer = ByteBuffer.allocate(newCapacity);
         newBuffer.put(this.content.clear());
+        newBuffer.putInt(bufferLength);
         newBuffer.put(buffer);
         this.content = newBuffer;
     }
