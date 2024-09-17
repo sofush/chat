@@ -39,7 +39,11 @@ public class MessageTransfer {
 
         // Read the rest of the message from the socket.
         ByteBuffer buffer = ByteBuffer.allocate(contentLength);
-        socket.getInputStream().readNBytes(buffer.array(), 0, buffer.capacity());
+        int read = socket.getInputStream().readNBytes(buffer.array(), 0, buffer.capacity());
+
+        if (read == -1)
+            throw new IOException("End of stream.");
+
         return new Message(header, buffer.array());
     }
 
