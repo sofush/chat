@@ -37,6 +37,9 @@ public class MessageTransfer {
         MessageHeader header = MessageTransfer.receiveHeader(socket);
         int contentLength = header.length - MessageHeader.SIZE;
 
+        if (header.type == MessageType.INVALID || header.length < MessageHeader.SIZE)
+            return null;
+
         // Read the rest of the message from the socket.
         ByteBuffer buffer = ByteBuffer.allocate(contentLength);
         int read = socket.getInputStream().readNBytes(buffer.array(), 0, buffer.capacity());
