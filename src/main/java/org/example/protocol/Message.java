@@ -49,4 +49,8 @@ public class Message {
         newBuffer.put(buffer);
         this.content = newBuffer;
     }
+
+    public MessageHeader getHeader() {
+        return this.header;
+    }
 }

@@ -2,7 +2,7 @@ package org.example.protocol;
 
 import java.time.Instant;
 
-class MessageHeader {
+public class MessageHeader {
     /**
      * The size of a message header in bytes.
      */
@@ -48,5 +48,13 @@ class MessageHeader {
             throw new IllegalArgumentException("A message must be at least as long as the header.");
 
         this.length = newValue;
+    }
+
+    public Instant getTimestamp() {
+        return this.timestamp;
+    }
+
+    public MessageType getType() {
+        return this.type;
     }
 }
