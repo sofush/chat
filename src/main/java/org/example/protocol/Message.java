@@ -29,15 +29,15 @@ public class Message {
      * @param argument The argument to add.
      */
     public void addArgument(Object argument) {
-        switch (argument) {
-            case String string -> {
-                byte[] bytes = string.getBytes(StandardCharsets.UTF_8);
-                this.addBytes(ByteBuffer.wrap(bytes));
-            }
-            case ByteBuffer buffer -> this.addBytes(buffer);
-            case byte[] buffer -> this.addBytes(ByteBuffer.wrap(buffer));
-            default ->
-                    throw new IllegalArgumentException("Argument type is not supported.");
+        if (argument instanceof String s) {
+            byte[] bytes = s.getBytes(StandardCharsets.UTF_8);
+            this.addBytes(ByteBuffer.wrap(bytes));
+        } else if (argument instanceof ByteBuffer b) {
+            this.addBytes(b);
+        } else if (argument instanceof byte[] b) {
+            this.addBytes(ByteBuffer.wrap(b));
+        } else {
+            throw new IllegalArgumentException("Argument type is not supported.");
         }
     }
 
