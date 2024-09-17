@@ -1,44 +1,52 @@
 package org.example.protocol;
 
-import java.io.IOException;
-import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 public class Message {
-    private static final int SIZE = 8;
-    private final MessageType type;
-    private final float measurement;
+    MessageHeader header;
+    ByteBuffer content;
 
-    public Message(MessageType type, float measurement) {
-        this.type = type;
-        this.measurement = measurement;
+    Message(MessageHeader header, byte[] content) {
+        this.header = header;
+        this.content = ByteBuffer.wrap(content);
     }
 
-    public void send(Socket socket) throws IOException {
-        var buffer = ByteBuffer.allocate(Message.SIZE);
-        buffer.putInt(this.type.toInt());
-        buffer.putFloat(this.measurement);
-        socket.getOutputStream().write(buffer.array(), 0, Message.SIZE);
-    }
-
-    public static Message receive(Socket socket) throws IOException {
-        var buffer = ByteBuffer.allocate(Message.SIZE);
-        int read = socket.getInputStream().read(buffer.array());
-
-        if (read == -1)
-            throw new IOException("End of stream.");
-
+    /**
+     * Create a new message of the given type.
+     * @param type The type of the message.
+     * @return The message that has been created.
+     */
+    public static Message create(MessageType type) {
         return new Message(
-            MessageType.from(buffer.getInt()),
-            buffer.getFloat()
+            new MessageHeader(0, type, null),
+            new byte[0]
         );
     }
 
-    public MessageType getType() {
-        return this.type;
+    /**
+     * Adds an argument to the body of the message.
+     * @param argument The argument to add.
+     */
+    public void addArgument(Object argument) {
+        switch (argument) {
+            case String string -> {
+                byte[] bytes = string.getBytes(StandardCharsets.UTF_8);
+                this.addBytes(ByteBuffer.wrap(bytes));
+            }
+            case ByteBuffer buffer -> this.addBytes(buffer);
+            case byte[] buffer -> this.addBytes(ByteBuffer.wrap(buffer));
+            default ->
+                    throw new IllegalArgumentException("Argument type is not supported.");
+        }
     }
 
-    public float getMeasurement() {
-        return this.measurement;
+    private void addBytes(ByteBuffer buffer) {
+        int bufferLength = buffer.limit() - buffer.position();
+        int newCapacity = this.content.limit() - this.content.position() + bufferLength;
+        ByteBuffer newBuffer = ByteBuffer.allocate(newCapacity);
+        newBuffer.put(this.content.clear());
+        newBuffer.put(buffer);
+        this.content = newBuffer;
     }
 }

@@ -3,10 +3,10 @@ package org.example.protocol;
 import java.util.Arrays;
 
 public enum MessageType {
-    UNKNOWN(0),
-    TEMPERATURE(1),
-    AIR_HUMIDITY(2),
-    SOIL_MOISTURE(3);
+    INVALID(0),
+    BROADCAST(1),
+    UNICAST(2),
+    FILE(3);
 
     private final int value;
 
@@ -20,7 +20,8 @@ public enum MessageType {
 
     public static MessageType from(int value) {
         return Arrays.stream(MessageType.values())
-                .filter((variant) -> variant.toInt() == value)
-                .findFirst().orElse(MessageType.UNKNOWN);
+            .filter((variant) -> variant.toInt() == value)
+            .findFirst()
+            .orElse(INVALID);
     }
 }
