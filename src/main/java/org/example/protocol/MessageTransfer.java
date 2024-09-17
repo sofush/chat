@@ -16,12 +16,16 @@ public class MessageTransfer {
     public static void send(Socket socket, Message message) throws IOException {
         int contentLength = message.content.limit() - message.content.position();
         message.header.finish(contentLength);
+        // Prepare the header for sending.
 
+        // Put the header and content bytes into a buffer.
         var buffer = ByteBuffer.allocate(message.header.length);
         buffer.putInt(message.header.type.toInt());
         buffer.putInt(message.header.length);
         buffer.putLong(message.header.timestamp.toEpochMilli());
         buffer.put(message.content.clear());
+
+        // Write the buffer contents to the socket output stream.
         socket.getOutputStream().write(buffer.array(), 0, buffer.limit());
     }
 
@@ -30,9 +34,11 @@ public class MessageTransfer {
      * @param socket The socket to read from.
      */
     public static Message receive(Socket socket) throws IOException {
+        // Read a message header from the socket.
         MessageHeader header = MessageTransfer.receiveHeader(socket);
         int contentLength = header.length - MessageHeader.SIZE;
 
+        // Read the rest of the message from the socket.
         ByteBuffer buffer = ByteBuffer.allocate(contentLength);
         socket.getInputStream().readNBytes(buffer.array(), 0, buffer.capacity());
         return new Message(header, buffer.array());
