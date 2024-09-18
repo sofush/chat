@@ -31,11 +31,11 @@ public class Message {
     public void addArgument(Object argument) {
         if (argument instanceof String s) {
             byte[] bytes = s.getBytes(StandardCharsets.UTF_8);
-            this.addBytes(ByteBuffer.wrap(bytes));
+            this.pushBytes(ByteBuffer.wrap(bytes));
         } else if (argument instanceof ByteBuffer b) {
-            this.addBytes(b);
+            this.pushBytes(b);
         } else if (argument instanceof byte[] b) {
-            this.addBytes(ByteBuffer.wrap(b));
+            this.pushBytes(ByteBuffer.wrap(b));
         } else {
             throw new IllegalArgumentException("Argument type is not supported.");
         }
@@ -45,7 +45,7 @@ public class Message {
      * Pushes the given bytes to the end of the message content buffer.
      * @param buffer A buffer containing the bytes to push.
      */
-    private void addBytes(ByteBuffer buffer) {
+    private void pushBytes(ByteBuffer buffer) {
         int bufferLength = buffer.limit() - buffer.position();
         int newCapacity = this.content.limit() - this.content.position() + bufferLength + 4;
         ByteBuffer newBuffer = ByteBuffer.allocate(newCapacity);
