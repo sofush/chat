@@ -37,6 +37,8 @@ public class TcpServer implements Runnable, Closeable {
         while (!Thread.interrupted()) {
             this.acceptClient();
         }
+
+        this.executors.shutdownNow();
     }
 
     @Override
