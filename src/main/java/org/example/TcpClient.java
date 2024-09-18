@@ -25,6 +25,10 @@ public class TcpClient implements Runnable, Closeable {
         this.logger.info("Client has connected to the server.");
     }
 
+    public Socket getSocket() {
+        return this.socket;
+    }
+
     @Override
     public void run() {
         var message = Message.create(MessageType.BROADCAST);
