@@ -1,5 +1,6 @@
 package org.example.server;
 
+import org.example.protocol.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,14 +10,17 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.SubmissionPublisher;
 
 public class TcpServer implements Runnable, Closeable {
     private final Logger logger;
     private final ServerSocket channel;
     private final ExecutorService executors;
+    private final SubmissionPublisher<Message> publisher;
 
     public TcpServer(InetSocketAddress address) throws IOException {
         this.logger = LoggerFactory.getLogger(TcpServer.class);
+        this.publisher = new SubmissionPublisher<>();
         this.channel = new ServerSocket(address.getPort());
         this.logger.info("Started TCP server on port " + address.getPort() + ".");
         this.executors = Executors.newCachedThreadPool();
@@ -25,7 +29,7 @@ public class TcpServer implements Runnable, Closeable {
     private void acceptClient() {
         try {
             var client = this.channel.accept();
-            this.executors.execute(new ClientHandler(client));
+            this.executors.execute(new ClientHandler(this.publisher, client));
             this.logger.info("A client has connected.");
         } catch (IOException e) {
             this.logger.error("Could not accept or register client.", e);

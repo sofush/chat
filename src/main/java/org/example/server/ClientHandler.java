@@ -1,7 +1,6 @@
 package org.example.server;
 
 import org.example.protocol.Message;
-import org.example.protocol.MessageArguments;
 import org.example.protocol.MessageTransfer;
 import org.example.protocol.MessageType;
 import org.slf4j.Logger;
@@ -10,12 +9,18 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.concurrent.Flow;
+import java.util.concurrent.SubmissionPublisher;
 
-public class ClientHandler implements Runnable, Closeable {
+public class ClientHandler implements Runnable, Closeable, Flow.Subscriber<Message> {
     private final Socket client;
     private final Logger logger;
+    private final SubmissionPublisher<Message> publisher;
+    private Flow.Subscription subscription;
 
-    public ClientHandler(Socket client) {
+    public ClientHandler(SubmissionPublisher<Message> publisher, Socket client) {
+        this.publisher = publisher;
+        this.publisher.subscribe(this);
         this.client = client;
         this.logger = LoggerFactory.getLogger(ClientHandler.class);
     }
@@ -24,14 +29,9 @@ public class ClientHandler implements Runnable, Closeable {
         MessageType type = message.getHeader().getType();
         this.logger.info("Got message of type " + type + ".");
 
-        MessageArguments args = message.getArguments();
-
         switch (message.getHeader().getType()) {
-            case BROADCAST, UNICAST -> {
-                String arg = (String) args.nth(0);
-                this.logger.debug("Message contents: " + arg);
-            }
-            case FILE -> {}
+            case BROADCAST, UNICAST -> this.publisher.offer(message, null);
+            case FILE -> throw new RuntimeException("Not implemented yet.");
         }
     }
 
@@ -48,16 +48,49 @@ public class ClientHandler implements Runnable, Closeable {
             }
         }
 
+        this.close();
+    }
+
+    @Override
+    public void onSubscribe(Flow.Subscription subscription) {
+        this.subscription = subscription;
+        this.subscription.request(Long.MAX_VALUE);
+    }
+
+    @Override
+    public void onNext(Message msg) {
+        switch (msg.getHeader().getType()) {
+            case INVALID, FILE -> { return; }
+            case UNICAST -> throw new RuntimeException("Not implemented yet.");
+        }
+
         try {
-            this.close();
+            MessageTransfer.send(this.client, msg);
         } catch (IOException e) {
-            this.logger.error("Could not close ClientHandler.", e);
+            this.logger.error("Could not send message.");
         }
     }
 
     @Override
-    public void close() throws IOException {
-        this.logger.info("Closing client handler.");
-        this.client.close();
+    public void onError(Throwable throwable) {
+        this.logger.error("Got subscriber error: ", throwable);
+    }
+
+    @Override
+    public void onComplete() {
+        this.logger.debug("No more messages from message broker.");
+    }
+
+    @Override
+    public void close() {
+        if (subscription != null)
+            subscription.cancel();
+
+        try {
+            this.logger.info("Closing client handler.");
+            this.client.close();
+        } catch (IOException e) {
+            this.logger.error("Could not close ClientHandler.", e);
+        }
     }
 }
