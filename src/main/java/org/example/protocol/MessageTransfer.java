@@ -9,7 +9,7 @@ public class MessageTransfer {
     private MessageTransfer() {}
 
     /**
-     * Write a message to a socket.
+     * Writes a message to a socket.
      * @param socket The socket to write the message to.
      * @param message The message to write.
      */
@@ -29,7 +29,7 @@ public class MessageTransfer {
     }
 
     /**
-     * Read a message from a socket.
+     * Reads a message from a socket.
      * @param socket The socket to read from.
      */
     public static Message receive(Socket socket) throws IOException {
