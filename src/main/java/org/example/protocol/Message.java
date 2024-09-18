@@ -41,6 +41,10 @@ public class Message {
         }
     }
 
+    /**
+     * Pushes the given bytes to the end of the message content buffer.
+     * @param buffer A buffer containing the bytes to push.
+     */
     private void addBytes(ByteBuffer buffer) {
         int bufferLength = buffer.limit() - buffer.position();
         int newCapacity = this.content.limit() - this.content.position() + bufferLength + 4;
