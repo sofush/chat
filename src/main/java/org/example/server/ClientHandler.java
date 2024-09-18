@@ -1,4 +1,4 @@
-package org.example;
+package org.example.server;
 
 import org.example.protocol.Message;
 import org.example.protocol.MessageArguments;

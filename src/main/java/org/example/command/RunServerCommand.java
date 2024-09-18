@@ -1,6 +1,6 @@
 package org.example.command;
 
-import org.example.TcpServer;
+import org.example.server.TcpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
