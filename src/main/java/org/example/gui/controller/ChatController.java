@@ -1,11 +1,14 @@
 package org.example.gui.controller;
 
+import javafx.concurrent.WorkerStateEvent;
 import javafx.fxml.FXML;
 import javafx.event.Event;
+import javafx.scene.Parent;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import org.example.TcpClient;
+import org.example.gui.GuiApplication;
 import org.example.gui.ReadMessageService;
 import org.example.protocol.Message;
 import org.example.protocol.MessageTransfer;
@@ -17,6 +20,7 @@ import java.io.Closeable;
 import java.io.IOException;
 
 public class ChatController implements Closeable {
+    private static final String MESSAGE_FXML = "/fxml/message.fxml";
     private final Logger logger = LoggerFactory.getLogger(ChatController.class);
     private TcpClient client;
     private ReadMessageService readMessageService;
@@ -27,12 +31,25 @@ public class ChatController implements Closeable {
     public void setClient(TcpClient client) {
         this.client = client;
         this.readMessageService = new ReadMessageService(this.client);
-        this.readMessageService.setOnSucceeded((e) -> {
-            Message msg = this.readMessageService.getValue();
-            String content = (String) msg.getArguments().nth(0);
-            this.messageContainer.getChildren().add(new Text(content));
-        });
+        this.readMessageService.setOnSucceeded(this::addMessage);
         this.readMessageService.start();
+    }
+
+    public void addMessage(WorkerStateEvent ignored) {
+        Message msg = this.readMessageService.getValue();
+        String content = (String) msg.getArguments().nth(0);
+
+        try {
+            Parent messageNode = GuiApplication.loadScene(MESSAGE_FXML, (controller) -> {
+                ((ChatMessageController) controller)
+                    .getMessageContentLabel()
+                    .setText(content);
+            });
+
+            this.messageContainer.getChildren().add(messageNode);
+        } catch (Exception ex) {
+            this.logger.error("Could not load fxml at path " + MESSAGE_FXML);
+        }
     }
 
     @FXML

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+
+<VBox maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="250.0" prefWidth="600.0" spacing="2.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.gui.controller.ChatMessageController">
+   <children>
+      <HBox maxHeight="0.0" prefHeight="100.0" prefWidth="200.0" spacing="8.0">
+         <children>
+            <Label fx:id="messageSenderLabel" text="Afsender" textFill="#303030">
+               <font>
+                  <Font name="Segoe UI Black" size="16.0" />
+               </font>
+            </Label>
+            <VBox alignment="CENTER_LEFT" prefHeight="200.0" prefWidth="100.0">
+               <children>
+                  <Label fx:id="messageTimestampLabel" alignment="CENTER" text="sendt 17.30" textOverrun="CLIP">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
+               </children>
+            </VBox>
+         </children>
+      </HBox>
+      <Label fx:id="messageContentLabel" alignment="TOP_LEFT" contentDisplay="TOP" text="Lorem ipsum (/ˌlɔː.rəm ˈɪp.səm/) is a placeholder text commonly used to demonstrate the visual form of a document or a typeface without relying on meaningful content. Lorem ipsum may be used as a placeholder before the final copy is available. It is also used to temporarily replace text in a process called greeking, which allows designers to consider the form of a webpage or publication, without the meaning of the text influencing the design. " wrapText="true">
+         <font>
+            <Font size="15.0" />
+         </font>
+      </Label>
+   </children>
+</VBox>
