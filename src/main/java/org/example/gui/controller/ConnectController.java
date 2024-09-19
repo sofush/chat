@@ -1,10 +1,10 @@
-package org.example.gui;
+package org.example.gui.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.control.TextField;
-import javafx.stage.Stage;
 import org.example.TcpClient;
+import org.example.gui.GuiApplication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

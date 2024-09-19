@@ -1,13 +1,12 @@
-package org.example.gui;
+package org.example.gui.controller;
 
 import javafx.fxml.FXML;
 import javafx.event.Event;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
-import javafx.util.Duration;
 import org.example.TcpClient;
+import org.example.gui.ReadMessageService;
 import org.example.protocol.Message;
 import org.example.protocol.MessageTransfer;
 import org.example.protocol.MessageType;
@@ -16,8 +15,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class ChatController implements Closeable {
     private final Logger logger = LoggerFactory.getLogger(ChatController.class);
