@@ -42,8 +42,13 @@ public class TcpClient implements Runnable, Closeable {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         this.logger.info("Closing TCP client.");
-        this.socket.close();
+
+        try {
+            this.socket.close();
+        } catch (IOException e) {
+            this.logger.error("Could not close TCP client socket.");
+        }
     }
 }
