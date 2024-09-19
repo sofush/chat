@@ -43,7 +43,7 @@ public class ConnectController {
 
         // Load the "chat" scene.
         try {
-            chatParent = this.app.loadScene(path, (controller) -> {
+            chatParent = GuiApplication.loadScene(path, (controller) -> {
                 ((ChatController)controller).setClient(client);
             });
         } catch (Exception e) {

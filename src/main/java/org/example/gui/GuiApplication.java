@@ -24,9 +24,9 @@ public class GuiApplication extends Application {
         return this.stage;
     }
 
-    public Parent loadScene(String path, Consumer<Object> func) throws Exception {
+    public static Parent loadScene(String path, Consumer<Object> func) throws Exception {
         Logger logger = LoggerFactory.getLogger(GuiApplication.class);
-        URL fxmlUrl = getClass().getResource(path);
+        URL fxmlUrl = GuiApplication.class.getResource(path);
 
         if (fxmlUrl == null)
             throw new FileNotFoundException(
