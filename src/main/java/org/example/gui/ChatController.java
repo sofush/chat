@@ -4,6 +4,9 @@ import javafx.fxml.FXML;
 import javafx.event.Event;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
+import javafx.util.Duration;
 import org.example.TcpClient;
 import org.example.protocol.Message;
 import org.example.protocol.MessageTransfer;
@@ -13,16 +16,26 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ChatController implements Closeable {
     private final Logger logger = LoggerFactory.getLogger(ChatController.class);
     private TcpClient client;
+    private ReadMessageService readMessageService;
 
     @FXML private TextField messageTextField;
-    @FXML private ScrollPane messageScrollPane;
+    @FXML private VBox messageContainer;
 
     public void setClient(TcpClient client) {
         this.client = client;
+        this.readMessageService = new ReadMessageService(this.client);
+        this.readMessageService.setOnSucceeded((e) -> {
+            Message msg = this.readMessageService.getValue();
+            String content = (String) msg.getArguments().nth(0);
+            this.messageContainer.getChildren().add(new Text(content));
+        });
+        this.readMessageService.start();
     }
 
     @FXML

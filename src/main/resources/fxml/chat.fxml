@@ -63,13 +63,16 @@
                   <Insets bottom="5.0" />
                </GridPane.margin>
             </GridPane>
-            <ScrollPane fx:id="messageScrollPane" hbarPolicy="NEVER" prefHeight="200.0" prefWidth="200.0" vbarPolicy="ALWAYS">
+            <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" prefHeight="200.0" prefWidth="200.0" vbarPolicy="ALWAYS">
                <GridPane.margin>
                   <Insets bottom="5.0" />
                </GridPane.margin>
                <opaqueInsets>
                   <Insets />
                </opaqueInsets>
+               <content>
+                  <VBox fx:id="messageContainer" prefHeight="200.0" prefWidth="100.0" />
+               </content>
             </ScrollPane>
          </children>
          <GridPane.margin>
