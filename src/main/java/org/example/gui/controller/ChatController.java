@@ -4,6 +4,7 @@ import javafx.concurrent.WorkerStateEvent;
 import javafx.fxml.FXML;
 import javafx.event.Event;
 import javafx.scene.Parent;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -25,6 +26,7 @@ public class ChatController implements Closeable {
     private TcpClient client;
     private ReadMessageService readMessageService;
 
+    @FXML private ScrollPane messageScrollPane;
     @FXML private TextField messageTextField;
     @FXML private VBox messageContainer;
 
@@ -33,6 +35,11 @@ public class ChatController implements Closeable {
         this.readMessageService = new ReadMessageService(this.client);
         this.readMessageService.setOnSucceeded(this::addMessage);
         this.readMessageService.start();
+
+        // Scroll to the bottom when the inner container's height changes.
+        this.messageContainer
+            .heightProperty()
+            .addListener(o -> this.messageScrollPane.setVvalue(1));
     }
 
     public void addMessage(WorkerStateEvent ignored) {

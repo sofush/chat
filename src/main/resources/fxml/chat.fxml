@@ -63,7 +63,7 @@
                   <Insets bottom="5.0" />
                </GridPane.margin>
             </GridPane>
-            <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" prefHeight="200.0" prefWidth="200.0" vbarPolicy="ALWAYS">
+            <ScrollPane fx:id="messageScrollPane" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" prefHeight="200.0" prefWidth="200.0" vbarPolicy="ALWAYS">
                <GridPane.margin>
                   <Insets bottom="5.0" />
                </GridPane.margin>
