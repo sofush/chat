@@ -48,7 +48,7 @@ public class ChatController implements Closeable {
 
             this.messageContainer.getChildren().add(messageNode);
         } catch (Exception ex) {
-            this.logger.error("Could not load fxml at path " + MESSAGE_FXML);
+            this.logger.error("Could not add message to scroll pane.", ex);
         }
     }
 
