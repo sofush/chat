@@ -54,6 +54,17 @@
         <configuration>
           <mainClass>org.example.gui.GuiApplication</mainClass>
         </configuration>
+        <executions>
+          <execution>
+            <id>debug</id>
+            <configuration>
+              <mainClass>org.example.gui.GuiApplication</mainClass>
+              <options>
+                <option>-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005</option>
+              </options>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
