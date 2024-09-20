@@ -13,6 +13,7 @@ import java.util.concurrent.Flow;
 import java.util.concurrent.SubmissionPublisher;
 
 public class ClientHandler implements Runnable, Closeable, Flow.Subscriber<Message> {
+    private User user;
     private final Socket client;
     private final Logger logger;
     private final SubmissionPublisher<Message> publisher;
@@ -23,6 +24,7 @@ public class ClientHandler implements Runnable, Closeable, Flow.Subscriber<Messa
         this.publisher.subscribe(this);
         this.client = client;
         this.logger = LoggerFactory.getLogger(ClientHandler.class);
+        this.user = new User();
     }
 
     public void handleMessage(Message message) {
@@ -31,6 +33,14 @@ public class ClientHandler implements Runnable, Closeable, Flow.Subscriber<Messa
 
         switch (message.getHeader().getType()) {
             case BROADCAST, UNICAST -> this.publisher.offer(message, null);
+            case CHANGE_DISPLAY_NAME -> {
+                String newDisplayName = (String) message.getArguments().nth(0);
+                this.user.setDisplayName(newDisplayName);
+            }
+            case SWITCH_ROOM -> {
+                String newRoomName = (String) message.getArguments().nth(0);
+                this.user.setRoomName(newRoomName);
+            }
             case FILE -> throw new RuntimeException("Not implemented yet.");
         }
     }
@@ -60,8 +70,9 @@ public class ClientHandler implements Runnable, Closeable, Flow.Subscriber<Messa
     @Override
     public void onNext(Message msg) {
         switch (msg.getHeader().getType()) {
-            case INVALID, FILE -> { return; }
-            case UNICAST -> throw new RuntimeException("Not implemented yet.");
+            case INVALID, FILE, CHANGE_DISPLAY_NAME, SWITCH_ROOM -> { return; }
+            case UNICAST ->
+                throw new RuntimeException("Not implemented yet.");
         }
 
         try {

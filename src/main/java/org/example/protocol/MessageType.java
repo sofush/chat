@@ -6,7 +6,9 @@ public enum MessageType {
     INVALID(0),
     BROADCAST(1),
     UNICAST(2),
-    FILE(3);
+    FILE(3),
+    CHANGE_DISPLAY_NAME(4),
+    SWITCH_ROOM(5);
 
     private final int value;
 
