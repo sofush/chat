@@ -19,10 +19,9 @@ public class MessageArguments {
         ByteBuffer buffer = this.message.content.duplicate().clear();
 
         try {
-            while (n > 1) {
+            for (int i = 0; i < n; i++) {
                 int argumentLength = buffer.getInt();
                 buffer.position(buffer.position() + argumentLength);
-                n--;
             }
 
             int argumentLength = buffer.getInt();
@@ -35,12 +34,21 @@ public class MessageArguments {
 
     private Object parseNthArgument(int n, ByteBuffer buffer) {
         switch (this.message.header.type) {
-            case BROADCAST, UNICAST, CHANGE_USERNAME, SWITCH_ROOM -> {
-                if (n == 0) return parseString(buffer);
+            case CHANGE_USERNAME, SWITCH_ROOM -> {
+                if (n == 0) return parseString(buffer); // name
+            }
+            case BROADCAST -> {
+                if (n == 0) return parseString(buffer); // sender
+                if (n == 1) return parseString(buffer); // message
+            }
+            case UNICAST -> {
+                if (n == 0) return parseString(buffer); // sender
+                if (n == 1) return parseString(buffer); // message
+                if (n == 2) return parseString(buffer); // recipient
             }
             case FILE -> {
-                if (n == 0) return parseString(buffer);
-                if (n == 1) return buffer;
+                if (n == 0) return parseString(buffer); // filename
+                if (n == 1) return buffer; // file contents
             }
         }
 

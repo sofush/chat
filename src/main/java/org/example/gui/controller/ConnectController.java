@@ -56,6 +56,7 @@ public class ConnectController {
         try {
             chatParent = GuiApplication.loadScene(path, (controller) -> {
                 ((ChatController)controller).setClient(client);
+                ((ChatController)controller).setUsername(username);
             });
         } catch (Exception e) {
             client.close();

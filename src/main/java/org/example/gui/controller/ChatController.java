@@ -7,7 +7,6 @@ import javafx.scene.Parent;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
 import org.example.TcpClient;
 import org.example.gui.GuiApplication;
 import org.example.gui.ReadMessageService;
@@ -19,16 +18,25 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class ChatController implements Closeable {
     private static final String MESSAGE_FXML = "/fxml/message.fxml";
     private final Logger logger = LoggerFactory.getLogger(ChatController.class);
     private TcpClient client;
     private ReadMessageService readMessageService;
+    private String username;
 
     @FXML private ScrollPane messageScrollPane;
     @FXML private TextField messageTextField;
     @FXML private VBox messageContainer;
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
     public void setClient(TcpClient client) {
         this.client = client;
@@ -44,13 +52,28 @@ public class ChatController implements Closeable {
 
     public void addMessage(WorkerStateEvent ignored) {
         Message msg = this.readMessageService.getValue();
-        String content = (String) msg.getArguments().nth(0);
+        String sender, content;
+
+        switch (msg.getHeader().getType()) {
+            case BROADCAST, UNICAST -> {
+                sender = (String) msg.getArguments().nth(0);
+                content = (String) msg.getArguments().nth(1);
+            }
+            default -> { return; }
+        }
 
         try {
             Parent messageNode = GuiApplication.loadScene(MESSAGE_FXML, (controller) -> {
-                ((ChatMessageController) controller)
-                    .getMessageContentLabel()
-                    .setText(content);
+                ChatMessageController c = (ChatMessageController) controller;
+
+                c.getMessageContentLabel().setText(content);
+                c.getMessageSenderLabel().setText(sender);
+
+                var formatter = DateTimeFormatter
+                    .ofPattern("uuuu-MM-dd HH:mm:ss.SSS")
+                    .withZone(ZoneId.systemDefault());
+                String formattedTimestamp = formatter.format(msg.getHeader().getTimestamp());
+                c.getMessageTimestampLabel().setText("sendt " + formattedTimestamp);
             });
 
             this.messageContainer.getChildren().add(messageNode);
@@ -69,13 +92,22 @@ public class ChatController implements Closeable {
 
         if (content.toLowerCase().startsWith("/msg ")) {
             String[] splits = content.split(" ");
-            if (splits.length <= 2 || splits[2].isBlank()) return;
+            if (splits.length <= 2) return;
+
+            String recipient = splits[1];
+            String messageContents = Arrays.stream(splits)
+                .skip(2)
+                .collect(Collectors.joining());
+
+            if (messageContents.isBlank()) return;
 
             msg = Message.create(MessageType.UNICAST);
-            msg.addArgument(splits[1]);
-            msg.addArgument(splits[2]);
+            msg.addArgument(this.username);
+            msg.addArgument(messageContents);
+            msg.addArgument(recipient);
         } else {
             msg = Message.create(MessageType.BROADCAST);
+            msg.addArgument(this.username);
             msg.addArgument(content);
         }
 
