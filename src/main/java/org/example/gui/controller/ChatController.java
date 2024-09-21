@@ -52,22 +52,31 @@ public class ChatController implements Closeable {
 
     public void addMessage(WorkerStateEvent ignored) {
         Message msg = this.readMessageService.getValue();
-        String sender, content;
+        String sender, content, recipient = null;
 
         switch (msg.getHeader().getType()) {
-            case BROADCAST, UNICAST -> {
+            case BROADCAST -> {
                 sender = (String) msg.getArguments().nth(0);
                 content = (String) msg.getArguments().nth(1);
+            }
+            case UNICAST -> {
+                sender = (String) msg.getArguments().nth(0);
+                content = (String) msg.getArguments().nth(1);
+                recipient = (String) msg.getArguments().nth(2);
             }
             default -> { return; }
         }
 
         try {
+            String senderStr = recipient == null
+                ? sender
+                : String.format("%s → %s", sender, recipient);
+
             Parent messageNode = GuiApplication.loadScene(MESSAGE_FXML, (controller) -> {
                 ChatMessageController c = (ChatMessageController) controller;
 
+                c.getMessageSenderLabel().setText(senderStr);
                 c.getMessageContentLabel().setText(content);
-                c.getMessageSenderLabel().setText(sender);
 
                 var formatter = DateTimeFormatter
                     .ofPattern("uuuu-MM-dd HH:mm:ss.SSS")
@@ -97,7 +106,7 @@ public class ChatController implements Closeable {
             String recipient = splits[1];
             String messageContents = Arrays.stream(splits)
                 .skip(2)
-                .collect(Collectors.joining());
+                .collect(Collectors.joining(" "));
 
             if (messageContents.isBlank()) return;
 

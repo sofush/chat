@@ -72,10 +72,17 @@ public class ClientHandler implements Runnable, Closeable, Flow.Subscriber<Messa
         switch (msg.getHeader().getType()) {
             case INVALID, FILE, CHANGE_USERNAME, SWITCH_ROOM -> { return; }
             case UNICAST -> {
-                String recipient = (String) msg.getArguments().nth(0);
+                String sender = (String) msg.getArguments().nth(0);
+                String recipient = (String) msg.getArguments().nth(2);
                 String displayName = this.user.getDisplayName();
 
-                if (displayName == null || displayName.contentEquals(recipient))
+                if (displayName == null)
+                    return;
+
+                boolean isSender = displayName.contentEquals(sender);
+                boolean isRecipient = displayName.contentEquals(recipient);
+
+                if (!(isSender || isRecipient))
                     return;
             }
         }
