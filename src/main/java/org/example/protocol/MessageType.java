@@ -7,7 +7,7 @@ public enum MessageType {
     BROADCAST(1),
     UNICAST(2),
     FILE(3),
-    CHANGE_DISPLAY_NAME(4),
+    CHANGE_USERNAME(4),
     SWITCH_ROOM(5);
 
     private final int value;

@@ -5,6 +5,9 @@ import javafx.scene.Parent;
 import javafx.scene.control.TextField;
 import org.example.TcpClient;
 import org.example.gui.GuiApplication;
+import org.example.protocol.Message;
+import org.example.protocol.MessageTransfer;
+import org.example.protocol.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +19,7 @@ public class ConnectController {
 
     @FXML private TextField hostTextField;
     @FXML private TextField portTextField;
+    @FXML private TextField usernameTextField;
 
     public void setApp(GuiApplication app) {
         this.app = app;
@@ -27,12 +31,19 @@ public class ConnectController {
         Parent chatParent;
         TcpClient client;
 
+        String username = this.usernameTextField.getText();
+        if (username.isBlank()) return;
+
         // Connect to the server.
         try {
             client = new TcpClient(
                 this.hostTextField.getText(),
                 Integer.parseInt(this.portTextField.getText())
             );
+
+            Message msg = Message.create(MessageType.CHANGE_USERNAME);
+            msg.addArgument(username);
+            MessageTransfer.send(client.getSocket(), msg);
         } catch (IOException e) {
             this.logger.warn("Could not connect to the server.");
             return;

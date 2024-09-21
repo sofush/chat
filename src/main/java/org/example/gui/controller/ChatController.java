@@ -65,11 +65,22 @@ public class ChatController implements Closeable {
             throw new IllegalStateException("Client must not be null.");
 
         String content = this.messageTextField.getText();
-        Message message = Message.create(MessageType.BROADCAST);
-        message.addArgument(content);
+        Message msg;
+
+        if (content.toLowerCase().startsWith("/msg ")) {
+            String[] splits = content.split(" ");
+            if (splits.length <= 2 || splits[2].isBlank()) return;
+
+            msg = Message.create(MessageType.UNICAST);
+            msg.addArgument(splits[1]);
+            msg.addArgument(splits[2]);
+        } else {
+            msg = Message.create(MessageType.BROADCAST);
+            msg.addArgument(content);
+        }
 
         try {
-            MessageTransfer.send(this.client.getSocket(), message);
+            MessageTransfer.send(this.client.getSocket(), msg);
             this.messageTextField.clear();
         } catch (IOException ex) {
             this.logger.error("Could not send message.", ex);

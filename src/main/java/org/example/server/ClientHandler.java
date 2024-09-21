@@ -33,7 +33,7 @@ public class ClientHandler implements Runnable, Closeable, Flow.Subscriber<Messa
 
         switch (message.getHeader().getType()) {
             case BROADCAST, UNICAST -> this.publisher.offer(message, null);
-            case CHANGE_DISPLAY_NAME -> {
+            case CHANGE_USERNAME -> {
                 String newDisplayName = (String) message.getArguments().nth(0);
                 this.user.setDisplayName(newDisplayName);
             }
@@ -70,9 +70,14 @@ public class ClientHandler implements Runnable, Closeable, Flow.Subscriber<Messa
     @Override
     public void onNext(Message msg) {
         switch (msg.getHeader().getType()) {
-            case INVALID, FILE, CHANGE_DISPLAY_NAME, SWITCH_ROOM -> { return; }
-            case UNICAST ->
-                throw new RuntimeException("Not implemented yet.");
+            case INVALID, FILE, CHANGE_USERNAME, SWITCH_ROOM -> { return; }
+            case UNICAST -> {
+                String recipient = (String) msg.getArguments().nth(0);
+                String displayName = this.user.getDisplayName();
+
+                if (displayName == null || displayName.contentEquals(recipient))
+                    return;
+            }
         }
 
         try {

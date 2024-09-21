@@ -35,7 +35,7 @@ public class MessageArguments {
 
     private Object parseNthArgument(int n, ByteBuffer buffer) {
         switch (this.message.header.type) {
-            case BROADCAST, UNICAST, CHANGE_DISPLAY_NAME, SWITCH_ROOM -> {
+            case BROADCAST, UNICAST, CHANGE_USERNAME, SWITCH_ROOM -> {
                 if (n == 0) return parseString(buffer);
             }
             case FILE -> {

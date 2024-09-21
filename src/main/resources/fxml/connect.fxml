@@ -28,6 +28,16 @@
             <TextField fx:id="portTextField" maxWidth="200.0" onAction="#connectToServer" promptText="f.eks. 3000" />
          </children>
       </VBox>
+      <VBox alignment="CENTER" prefHeight="0.0" prefWidth="362.0">
+         <children>
+            <Text fill="#2e2e2e" strokeType="OUTSIDE" strokeWidth="0.0" text="Indtast brugernavn">
+               <font>
+                  <Font name="Segoe UI Semibold" size="12.0" />
+               </font>
+            </Text>
+            <TextField fx:id="usernameTextField" maxWidth="200.0" onAction="#connectToServer" />
+         </children>
+      </VBox>
       <Button mnemonicParsing="false" onAction="#connectToServer" text="Tilsut til server" />
    </children>
 </VBox>
