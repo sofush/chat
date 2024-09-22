@@ -13,7 +13,7 @@ import java.util.concurrent.Flow;
 import java.util.concurrent.SubmissionPublisher;
 
 public class ClientHandler implements Runnable, Closeable, Flow.Subscriber<Message> {
-    private User user;
+    private final User user;
     private final Socket client;
     private final Logger logger;
     private final SubmissionPublisher<Message> publisher;
