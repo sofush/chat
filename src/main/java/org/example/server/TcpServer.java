@@ -22,7 +22,7 @@ public class TcpServer implements Runnable, Closeable {
         this.logger = LoggerFactory.getLogger(TcpServer.class);
         this.publisher = new SubmissionPublisher<>();
         this.channel = new ServerSocket(address.getPort());
-        this.logger.info("Started TCP server on port " + address.getPort() + ".");
+        this.logger.info("TCP server is listening on port " + this.channel.getLocalPort() + ".");
         this.executors = Executors.newCachedThreadPool();
     }
 
