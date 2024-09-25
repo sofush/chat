@@ -31,6 +31,9 @@ public class ChatController implements Closeable {
     @FXML private ScrollPane messageScrollPane;
     @FXML private TextField messageTextField;
     @FXML private VBox messageContainer;
+    @FXML private Button roomOneButton;
+    @FXML private Button roomTwoButton;
+    @FXML private Button roomThreeButton;
 
     public void setUser(User user) {
         this.user = user;
@@ -41,6 +44,9 @@ public class ChatController implements Closeable {
         this.readMessageService = new ReadMessageService(this.client);
         this.readMessageService.setOnSucceeded(this::addMessage);
         this.readMessageService.start();
+
+        // Set the default room's button style.
+        roomOneButton.setStyle("-fx-base: #0491b2; -fx-font-weight: 700");
 
         // Scroll to the bottom when the inner container's height changes.
         this.messageContainer
@@ -78,16 +84,18 @@ public class ChatController implements Closeable {
 
     @FXML
     public void switchRoomButtonClicked(Event e) {
-        String id = ((Button)e.getSource()).getId();
+        Button source = (Button) e.getSource();
 
-        if (id == null) return;
-        else id = id.toLowerCase();
+        this.roomOneButton.setStyle(null);
+        this.roomTwoButton.setStyle(null);
+        this.roomThreeButton.setStyle(null);
+        source.setStyle("-fx-base: #0491b2; -fx-font-weight: 700");
 
-        if (id.contains("one")) {
+        if (source == roomOneButton) {
             this.user.setRoom("Rum 1");
-        } else if (id.contains("two")) {
+        } else if (source == roomTwoButton) {
             this.user.setRoom("Rum 2");
-        } else if (id.contains("three")) {
+        } else if (source == roomThreeButton) {
             this.user.setRoom("Rum 3");
         }
 
