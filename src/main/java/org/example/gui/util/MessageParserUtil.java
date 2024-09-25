@@ -64,5 +64,4 @@ public class MessageParserUtil {
         msg.addArgument(recipient);
         return msg;
     }
-
 }
