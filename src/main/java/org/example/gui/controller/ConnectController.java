@@ -6,6 +6,7 @@ import javafx.scene.control.TextField;
 import org.example.TcpClient;
 import org.example.entity.User;
 import org.example.gui.GuiApplication;
+import org.example.gui.util.SceneLoaderUtil;
 import org.example.protocol.Message;
 import org.example.protocol.MessageTransfer;
 import org.example.protocol.MessageType;
@@ -15,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 public class ConnectController {
-    private final static String CHAT_FXML = "/fxml/chat.fxml";
     private final Logger logger = LoggerFactory.getLogger(ConnectController.class);
     private GuiApplication app;
 
@@ -63,22 +63,16 @@ public class ConnectController {
     }
 
     private void switchToChatScene(TcpClient client, User user) {
-        Parent chatParent;
-
-        // Load the "chat" scene.
         try {
-            chatParent = GuiApplication.loadScene(CHAT_FXML, (controller) -> {
-                ((ChatController)controller).setClient(client);
-                ((ChatController)controller).setUser(user);
-            });
+            // Load the "chat" scene.
+            Parent chatParent = SceneLoaderUtil.loadChatScene(user, client);
+
+            // Show the "chat" scene.
+            this.app.getStage().getScene().setRoot(chatParent);
         } catch (Exception e) {
             client.close();
-            this.logger.error("Could not load chat room scene at path {}.", CHAT_FXML, e);
-            return;
+            this.logger.error("Could not load chat room scene.", e);
         }
-
-        // Show the "chat" scene.
-        this.app.getStage().getScene().setRoot(chatParent);
     }
 
     private User createUser() {

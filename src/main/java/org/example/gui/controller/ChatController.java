@@ -52,7 +52,7 @@ public class ChatController implements Closeable {
         Message msg = this.readMessageService.getValue();
 
         try {
-            Node messageNode = SceneLoaderUtil.loadChatNode(msg);
+            Node messageNode = SceneLoaderUtil.loadChatMessageScene(msg);
             this.messageContainer.getChildren().add(messageNode);
         } catch (Exception ex) {
             this.logger.error("Could not add message to scroll pane.", ex);
