@@ -4,16 +4,15 @@ import javafx.concurrent.WorkerStateEvent;
 import javafx.fxml.FXML;
 import javafx.event.Event;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import org.example.TcpClient;
 import org.example.entity.User;
-import org.example.gui.GuiApplication;
 import org.example.gui.MessageParserUtil;
 import org.example.gui.ReadMessageService;
+import org.example.gui.SceneLoaderUtil;
 import org.example.protocol.Message;
 import org.example.protocol.MessageTransfer;
 import org.example.protocol.MessageType;
@@ -22,14 +21,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.stream.Collectors;
 
 public class ChatController implements Closeable {
-    private static final String MESSAGE_FXML = "/fxml/message.fxml";
     private final Logger logger = LoggerFactory.getLogger(ChatController.class);
     private TcpClient client;
     private ReadMessageService readMessageService;
@@ -57,32 +50,9 @@ public class ChatController implements Closeable {
 
     public void addMessage(WorkerStateEvent ignored) {
         Message msg = this.readMessageService.getValue();
-        String sender, content, recipient = null;
-
-        switch (msg.getHeader().getType()) {
-            case BROADCAST -> {
-                sender = (String) msg.getArguments().nth(1);
-                content = (String) msg.getArguments().nth(2);
-            }
-            case UNICAST -> {
-                sender = (String) msg.getArguments().nth(1);
-                content = (String) msg.getArguments().nth(2);
-                recipient = (String) msg.getArguments().nth(3);
-            }
-            default -> { return; }
-        }
 
         try {
-            String senderStr = recipient == null
-                ? sender
-                : String.format("%s → %s", sender, recipient);
-
-            Node messageNode = this.loadChatNode(
-                senderStr,
-                content,
-                msg.getHeader().getTimestamp()
-            );
-
+            Node messageNode = SceneLoaderUtil.loadChatNode(msg);
             this.messageContainer.getChildren().add(messageNode);
         } catch (Exception ex) {
             this.logger.error("Could not add message to scroll pane.", ex);
@@ -136,24 +106,5 @@ public class ChatController implements Closeable {
     public void close() {
         if (this.client != null)
             this.client.close();
-    }
-
-    private Parent loadChatNode(
-        String messageSender,
-        String messageContent,
-        Instant timestamp
-    ) throws IOException {
-        return GuiApplication.loadScene(MESSAGE_FXML, (controller) -> {
-            ChatMessageController c = (ChatMessageController) controller;
-
-            c.getMessageSenderLabel().setText(messageSender);
-            c.getMessageContentLabel().setText(messageContent);
-
-            var formatter = DateTimeFormatter
-                .ofPattern("uuuu-MM-dd HH:mm:ss.SSS")
-                .withZone(ZoneId.systemDefault());
-            String formattedTimestamp = formatter.format(timestamp);
-            c.getMessageTimestampLabel().setText("sendt " + formattedTimestamp);
-        });
     }
 }
