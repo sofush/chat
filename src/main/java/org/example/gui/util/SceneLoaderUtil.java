@@ -1,6 +1,7 @@
-package org.example.gui;
+package org.example.gui.util;
 
 import javafx.scene.Parent;
+import org.example.gui.GuiApplication;
 import org.example.gui.controller.ChatMessageController;
 import org.example.protocol.Message;
 

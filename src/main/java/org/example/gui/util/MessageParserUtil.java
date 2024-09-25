@@ -1,4 +1,4 @@
-package org.example.gui;
+package org.example.gui.util;
 
 import org.example.entity.User;
 import org.example.protocol.Message;
