@@ -3,12 +3,16 @@ package org.example.gui.controller;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.fxml.FXML;
 import javafx.event.Event;
+import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import org.example.TcpClient;
+import org.example.entity.User;
 import org.example.gui.GuiApplication;
+import org.example.gui.MessageParserUtil;
 import org.example.gui.ReadMessageService;
 import org.example.protocol.Message;
 import org.example.protocol.MessageTransfer;
@@ -18,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -28,14 +33,14 @@ public class ChatController implements Closeable {
     private final Logger logger = LoggerFactory.getLogger(ChatController.class);
     private TcpClient client;
     private ReadMessageService readMessageService;
-    private String username;
+    private User user;
 
     @FXML private ScrollPane messageScrollPane;
     @FXML private TextField messageTextField;
     @FXML private VBox messageContainer;
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public void setClient(TcpClient client) {
@@ -56,13 +61,13 @@ public class ChatController implements Closeable {
 
         switch (msg.getHeader().getType()) {
             case BROADCAST -> {
-                sender = (String) msg.getArguments().nth(0);
-                content = (String) msg.getArguments().nth(1);
+                sender = (String) msg.getArguments().nth(1);
+                content = (String) msg.getArguments().nth(2);
             }
             case UNICAST -> {
-                sender = (String) msg.getArguments().nth(0);
-                content = (String) msg.getArguments().nth(1);
-                recipient = (String) msg.getArguments().nth(2);
+                sender = (String) msg.getArguments().nth(1);
+                content = (String) msg.getArguments().nth(2);
+                recipient = (String) msg.getArguments().nth(3);
             }
             default -> { return; }
         }
@@ -72,18 +77,11 @@ public class ChatController implements Closeable {
                 ? sender
                 : String.format("%s → %s", sender, recipient);
 
-            Parent messageNode = GuiApplication.loadScene(MESSAGE_FXML, (controller) -> {
-                ChatMessageController c = (ChatMessageController) controller;
-
-                c.getMessageSenderLabel().setText(senderStr);
-                c.getMessageContentLabel().setText(content);
-
-                var formatter = DateTimeFormatter
-                    .ofPattern("uuuu-MM-dd HH:mm:ss.SSS")
-                    .withZone(ZoneId.systemDefault());
-                String formattedTimestamp = formatter.format(msg.getHeader().getTimestamp());
-                c.getMessageTimestampLabel().setText("sendt " + formattedTimestamp);
-            });
+            Node messageNode = this.loadChatNode(
+                senderStr,
+                content,
+                msg.getHeader().getTimestamp()
+            );
 
             this.messageContainer.getChildren().add(messageNode);
         } catch (Exception ex) {
@@ -93,32 +91,12 @@ public class ChatController implements Closeable {
 
     @FXML
     public void sendMessage(Event ignored) {
-        if (this.client == null)
-            throw new IllegalStateException("Client must not be null.");
+        if (this.client == null || !this.user.isValid())
+            throw new IllegalStateException("Client and user must be valid.");
 
-        String content = this.messageTextField.getText();
-        Message msg;
-
-        if (content.toLowerCase().startsWith("/msg ")) {
-            String[] splits = content.split(" ");
-            if (splits.length <= 2) return;
-
-            String recipient = splits[1];
-            String messageContents = Arrays.stream(splits)
-                .skip(2)
-                .collect(Collectors.joining(" "));
-
-            if (messageContents.isBlank()) return;
-
-            msg = Message.create(MessageType.UNICAST);
-            msg.addArgument(this.username);
-            msg.addArgument(messageContents);
-            msg.addArgument(recipient);
-        } else {
-            msg = Message.create(MessageType.BROADCAST);
-            msg.addArgument(this.username);
-            msg.addArgument(content);
-        }
+        String userInput = this.messageTextField.getText();
+        Message msg = MessageParserUtil.parse(this.user, userInput);
+        if (msg == null) return;
 
         try {
             MessageTransfer.send(this.client.getSocket(), msg);
@@ -129,11 +107,53 @@ public class ChatController implements Closeable {
     }
 
     @FXML
-    public void roomOneButtonClicked(Event ignored) {}
+    public void switchRoomButtonClicked(Event e) {
+        String id = ((Button)e.getSource()).getId();
+
+        if (id == null) return;
+        else id = id.toLowerCase();
+
+        if (id.contains("one")) {
+            this.user.setRoom("Rum 1");
+        } else if (id.contains("two")) {
+            this.user.setRoom("Rum 2");
+        } else if (id.contains("three")) {
+            this.user.setRoom("Rum 3");
+        }
+
+        try {
+            Message msg = Message.create(MessageType.UPDATE_USER);
+            msg.addArgument(this.user.getRoom());
+            msg.addArgument(this.user.getUsername());
+            MessageTransfer.send(this.client.getSocket(), msg);
+            this.messageContainer.getChildren().clear();
+        } catch (IOException ex) {
+            this.logger.error("Could not switch rooms.", ex);
+        }
+    }
 
     @Override
     public void close() {
         if (this.client != null)
             this.client.close();
+    }
+
+    private Parent loadChatNode(
+        String messageSender,
+        String messageContent,
+        Instant timestamp
+    ) throws IOException {
+        return GuiApplication.loadScene(MESSAGE_FXML, (controller) -> {
+            ChatMessageController c = (ChatMessageController) controller;
+
+            c.getMessageSenderLabel().setText(messageSender);
+            c.getMessageContentLabel().setText(messageContent);
+
+            var formatter = DateTimeFormatter
+                .ofPattern("uuuu-MM-dd HH:mm:ss.SSS")
+                .withZone(ZoneId.systemDefault());
+            String formattedTimestamp = formatter.format(timestamp);
+            c.getMessageTimestampLabel().setText("sendt " + formattedTimestamp);
+        });
     }
 }

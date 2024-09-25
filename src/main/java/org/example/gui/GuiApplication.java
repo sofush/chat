@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.URL;
 import java.util.function.Consumer;
 
@@ -24,7 +25,9 @@ public class GuiApplication extends Application {
         return this.stage;
     }
 
-    public static Parent loadScene(String path, Consumer<Object> func) throws Exception {
+    public static Parent loadScene(String path, Consumer<Object> func)
+        throws IOException
+    {
         Logger logger = LoggerFactory.getLogger(GuiApplication.class);
         URL fxmlUrl = GuiApplication.class.getResource(path);
 

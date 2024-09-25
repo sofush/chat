@@ -34,17 +34,20 @@ public class MessageArguments {
 
     private Object parseNthArgument(int n, ByteBuffer buffer) {
         switch (this.message.header.type) {
-            case CHANGE_USERNAME, SWITCH_ROOM -> {
-                if (n == 0) return parseString(buffer); // name
+            case UPDATE_USER -> {
+                if (n == 0) return parseString(buffer); // room
+                if (n == 1) return parseString(buffer); // username
             }
             case BROADCAST -> {
-                if (n == 0) return parseString(buffer); // sender
-                if (n == 1) return parseString(buffer); // message
+                if (n == 0) return parseString(buffer); // room
+                if (n == 1) return parseString(buffer); // sender
+                if (n == 2) return parseString(buffer); // message
             }
             case UNICAST -> {
-                if (n == 0) return parseString(buffer); // sender
-                if (n == 1) return parseString(buffer); // message
-                if (n == 2) return parseString(buffer); // recipient
+                if (n == 0) return parseString(buffer); // room
+                if (n == 1) return parseString(buffer); // sender
+                if (n == 2) return parseString(buffer); // message
+                if (n == 3) return parseString(buffer); // recipient
             }
             case FILE -> {
                 if (n == 0) return parseString(buffer); // filename

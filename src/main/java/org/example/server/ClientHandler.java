@@ -1,5 +1,6 @@
 package org.example.server;
 
+import org.example.entity.User;
 import org.example.protocol.Message;
 import org.example.protocol.MessageTransfer;
 import org.example.protocol.MessageType;
@@ -24,7 +25,7 @@ public class ClientHandler implements Runnable, Closeable, Flow.Subscriber<Messa
         this.publisher.subscribe(this);
         this.client = client;
         this.logger = LoggerFactory.getLogger(ClientHandler.class);
-        this.user = new User();
+        this.user = new User(null, null);
     }
 
     public void handleMessage(Message message) {
@@ -33,13 +34,11 @@ public class ClientHandler implements Runnable, Closeable, Flow.Subscriber<Messa
 
         switch (message.getHeader().getType()) {
             case BROADCAST, UNICAST -> this.publisher.offer(message, null);
-            case CHANGE_USERNAME -> {
-                String newDisplayName = (String) message.getArguments().nth(0);
-                this.user.setDisplayName(newDisplayName);
-            }
-            case SWITCH_ROOM -> {
-                String newRoomName = (String) message.getArguments().nth(0);
-                this.user.setRoomName(newRoomName);
+            case UPDATE_USER -> {
+                String room = (String) message.getArguments().nth(0);
+                String username = (String) message.getArguments().nth(1);
+                this.user.setUsername(username);
+                this.user.setRoom(room);
             }
             case FILE -> throw new RuntimeException("Not implemented yet.");
         }
@@ -70,19 +69,25 @@ public class ClientHandler implements Runnable, Closeable, Flow.Subscriber<Messa
     @Override
     public void onNext(Message msg) {
         switch (msg.getHeader().getType()) {
-            case INVALID, FILE, CHANGE_USERNAME, SWITCH_ROOM -> { return; }
+            case INVALID, FILE, UPDATE_USER -> { return; }
             case UNICAST -> {
-                String sender = (String) msg.getArguments().nth(0);
-                String recipient = (String) msg.getArguments().nth(2);
-                String displayName = this.user.getDisplayName();
+                String room = (String) msg.getArguments().nth(0);
+                String sender = (String) msg.getArguments().nth(1);
+                String recipient = (String) msg.getArguments().nth(3);
+                String displayName = this.user.getUsername();
 
-                if (displayName == null)
+                if (displayName == null || !room.contentEquals(this.user.getRoom()))
                     return;
 
                 boolean isSender = displayName.contentEquals(sender);
                 boolean isRecipient = displayName.contentEquals(recipient);
 
                 if (!(isSender || isRecipient))
+                    return;
+            }
+            case BROADCAST -> {
+                String room = (String) msg.getArguments().nth(0);
+                if (!this.user.getRoom().contentEquals(room))
                     return;
             }
         }
