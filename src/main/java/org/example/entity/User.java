@@ -25,13 +25,13 @@ public class User {
         this.username = username;
     }
 
-    public boolean isValid() {
+    public boolean isInvalid() {
         if (this.room == null || this.username == null)
-            return false;
+            return true;
 
         if (this.room.isBlank() || this.username.isBlank())
-            return false;
+            return true;
 
-        return !this.username.contains(" ");
+        return this.username.contains(" ");
     }
 }

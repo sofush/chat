@@ -61,7 +61,7 @@ public class ChatController implements Closeable {
 
     @FXML
     public void sendMessage(Event ignored) {
-        if (this.client == null || !this.user.isValid())
+        if (this.client == null || this.user.isInvalid())
             throw new IllegalStateException("Client and user must be valid.");
 
         String userInput = this.messageTextField.getText();

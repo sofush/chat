@@ -36,7 +36,7 @@ public class ConnectController {
         try {
             user = this.createUser();
 
-            if (!user.isValid()) {
+            if (user.isInvalid()) {
                 this.logger.warn("Could not create a user with the provided input.");
                 return;
             }

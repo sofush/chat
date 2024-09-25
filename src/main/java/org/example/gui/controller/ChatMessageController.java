@@ -5,7 +5,6 @@ import javafx.scene.control.Label;
 import org.example.protocol.Message;
 import org.example.protocol.MessageArguments;
 
-import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
@@ -20,9 +19,8 @@ public class ChatMessageController {
         switch (message.getHeader().getType()) {
             case INVALID, FILE, UPDATE_USER ->
                 throw new IllegalArgumentException("Invalid message type.");
-            case BROADCAST -> {
+            case BROADCAST ->
                 this.messageSenderLabel.setText((String) args.nth(1));
-            }
             case UNICAST -> {
                 String sender = (String) args.nth(1);
                 String recipient = (String) args.nth(3);
@@ -46,17 +44,5 @@ public class ChatMessageController {
             "sendt %s",
             formatter.format(message.getHeader().getTimestamp())
         ));
-    }
-
-    public Label getMessageSenderLabel() {
-        return messageSenderLabel;
-    }
-
-    public Label getMessageContentLabel() {
-        return messageContentLabel;
-    }
-
-    public Label getMessageTimestampLabel() {
-        return messageTimestampLabel;
     }
 }
