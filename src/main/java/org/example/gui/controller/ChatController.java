@@ -5,9 +5,11 @@ import javafx.fxml.FXML;
 import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.TextFlow;
 import org.example.TcpClient;
 import org.example.entity.User;
 import org.example.gui.util.MessageParserUtil;
@@ -104,10 +106,20 @@ public class ChatController implements Closeable {
             msg.addArgument(this.user.getRoom());
             msg.addArgument(this.user.getUsername());
             MessageTransfer.send(this.client.getSocket(), msg);
-            this.messageContainer.getChildren().clear();
+
+            this.notifyRoomSwitch();
         } catch (IOException ex) {
             this.logger.error("Could not switch rooms.", ex);
         }
+    }
+
+    private void notifyRoomSwitch() {
+        Label pre = new Label("Du deltager nu i rummet ");
+        Label post = new Label(this.user.getRoom());
+        post.setStyle("-fx-font-weight: 700");
+        TextFlow flow = new TextFlow();
+        flow.getChildren().addAll(pre, post);
+        this.messageContainer.getChildren().add(flow);
     }
 
     @Override
