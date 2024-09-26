@@ -1,8 +1,5 @@
 package org.example;
 
-import org.example.protocol.Message;
-import org.example.protocol.MessageTransfer;
-import org.example.protocol.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,7 +7,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.Socket;
 
-public class TcpClient implements Runnable, Closeable {
+public class TcpClient implements Closeable {
     private final Logger logger;
     private final Socket socket;
 
@@ -27,18 +24,6 @@ public class TcpClient implements Runnable, Closeable {
 
     public Socket getSocket() {
         return this.socket;
-    }
-
-    @Override
-    public void run() {
-        var message = Message.create(MessageType.BROADCAST);
-        message.addArgument("Hello, world!");
-
-        try {
-            MessageTransfer.send(this.socket, message);
-        } catch (IOException e) {
-            this.logger.error("Could not send message to server.", e);
-        }
     }
 
     @Override
