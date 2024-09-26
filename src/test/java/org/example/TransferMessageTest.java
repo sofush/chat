@@ -6,7 +6,7 @@ import junit.framework.TestSuite;
 import org.example.entity.User;
 import org.example.gui.TcpClient;
 import org.example.protocol.Message;
-import org.example.protocol.MessageTransfer;
+import org.example.protocol.MessageTransferUtil;
 import org.example.protocol.MessageType;
 import org.example.server.TcpServer;
 
@@ -47,10 +47,10 @@ public class TransferMessageTest extends TestCase {
             broadcastMessage.addArgument(room); // Name of the room to broadcast in.
             broadcastMessage.addArgument(userA.getUsername()); // Username of the sender.
             broadcastMessage.addArgument(message); // Message contents.
-            MessageTransfer.send(clientA.getSocket(), broadcastMessage);
+            MessageTransferUtil.send(clientA.getSocket(), broadcastMessage);
 
             // User B attempts to read the message.
-            Message received = MessageTransfer.receive(clientB.getSocket());
+            Message received = MessageTransferUtil.receive(clientB.getSocket());
 
             // Check that the received message is equivalent to the one that was sent.
             assertNotNull(received);
@@ -81,6 +81,6 @@ public class TransferMessageTest extends TestCase {
         Message msg = Message.create(MessageType.UPDATE_USER);
         msg.addArgument(user.getRoom());
         msg.addArgument(user.getUsername());
-        MessageTransfer.send(socket, msg);
+        MessageTransferUtil.send(socket, msg);
     }
 }

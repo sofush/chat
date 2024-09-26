@@ -5,8 +5,8 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.time.Instant;
 
-public class MessageTransfer {
-    private MessageTransfer() {}
+public class MessageTransferUtil {
+    private MessageTransferUtil() {}
 
     /**
      * Writes a message to a socket.
@@ -34,7 +34,7 @@ public class MessageTransfer {
      */
     public static Message receive(Socket socket) throws IOException {
         // Read a message header from the socket.
-        MessageHeader header = MessageTransfer.receiveHeader(socket);
+        MessageHeader header = MessageTransferUtil.receiveHeader(socket);
         int contentLength = header.length - MessageHeader.SIZE;
 
         if (header.type == MessageType.INVALID || header.length < MessageHeader.SIZE)

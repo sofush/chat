@@ -2,7 +2,7 @@ package org.example.server;
 
 import org.example.entity.User;
 import org.example.protocol.Message;
-import org.example.protocol.MessageTransfer;
+import org.example.protocol.MessageTransferUtil;
 import org.example.protocol.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +48,7 @@ public class ClientHandler implements Runnable, Closeable, Flow.Subscriber<Messa
     public void run() {
         while (!Thread.interrupted() && client.isConnected() && !client.isClosed()) {
             try {
-                Message message = MessageTransfer.receive(client);
+                Message message = MessageTransferUtil.receive(client);
                 if (message == null) continue;
                 this.handleMessage(message);
             } catch (IOException e) {
@@ -93,7 +93,7 @@ public class ClientHandler implements Runnable, Closeable, Flow.Subscriber<Messa
         }
 
         try {
-            MessageTransfer.send(this.client, msg);
+            MessageTransferUtil.send(this.client, msg);
         } catch (IOException e) {
             this.logger.error("Could not send message.");
         }

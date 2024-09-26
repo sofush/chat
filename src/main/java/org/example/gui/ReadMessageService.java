@@ -3,7 +3,7 @@ package org.example.gui;
 import javafx.concurrent.ScheduledService;
 import javafx.concurrent.Task;
 import org.example.protocol.Message;
-import org.example.protocol.MessageTransfer;
+import org.example.protocol.MessageTransferUtil;
 
 public class ReadMessageService extends ScheduledService<Message> {
     static class ReadMessageTask extends Task<Message> {
@@ -15,7 +15,7 @@ public class ReadMessageService extends ScheduledService<Message> {
 
         @Override
         protected Message call() throws Exception {
-            return MessageTransfer.receive(this.client.getSocket());
+            return MessageTransferUtil.receive(this.client.getSocket());
         }
     }
 

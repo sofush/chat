@@ -15,7 +15,7 @@ import org.example.gui.util.MessageParserUtil;
 import org.example.gui.ReadMessageService;
 import org.example.gui.util.SceneLoaderUtil;
 import org.example.protocol.Message;
-import org.example.protocol.MessageTransfer;
+import org.example.protocol.MessageTransferUtil;
 import org.example.protocol.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,7 +76,7 @@ public class ChatController implements Closeable {
         if (msg == null) return;
 
         try {
-            MessageTransfer.send(this.client.getSocket(), msg);
+            MessageTransferUtil.send(this.client.getSocket(), msg);
             this.messageTextField.clear();
         } catch (IOException ex) {
             this.logger.error("Could not send message.", ex);
@@ -104,7 +104,7 @@ public class ChatController implements Closeable {
             Message msg = Message.create(MessageType.UPDATE_USER);
             msg.addArgument(this.user.getRoom());
             msg.addArgument(this.user.getUsername());
-            MessageTransfer.send(this.client.getSocket(), msg);
+            MessageTransferUtil.send(this.client.getSocket(), msg);
 
             this.notifyRoomSwitch();
         } catch (IOException ex) {

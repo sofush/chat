@@ -8,7 +8,7 @@ import org.example.entity.User;
 import org.example.gui.GuiApplication;
 import org.example.gui.util.SceneLoaderUtil;
 import org.example.protocol.Message;
-import org.example.protocol.MessageTransfer;
+import org.example.protocol.MessageTransferUtil;
 import org.example.protocol.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +50,7 @@ public class ConnectController {
             Message msg = Message.create(MessageType.UPDATE_USER);
             msg.addArgument(user.getRoom());
             msg.addArgument(user.getUsername());
-            MessageTransfer.send(client.getSocket(), msg);
+            MessageTransferUtil.send(client.getSocket(), msg);
         } catch (IOException e) {
             this.logger.warn("Could not connect to the server.", e);
             return;
