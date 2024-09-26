@@ -51,7 +51,7 @@ public class TransferMessageTest extends TestCase {
             // User B attempts to read the message.
             Message received = MessageTransfer.receive(clientB.getSocket());
 
-            // Check that the received message is the one that was sent.
+            // Check that the received message is equivalent to the one that was sent.
             assertNotNull(received);
             assertEquals(
                 received.getHeader().getType().toInt(),
