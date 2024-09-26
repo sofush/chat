@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 public class MessageParserUtil {
     private static final Logger logger = LoggerFactory.getLogger(MessageParserUtil.class);
 
+    private MessageParserUtil() {}
+
     /**
      * Parses user input into a Message.
      * @param user The user that sent the input string.

@@ -24,6 +24,8 @@ public class SceneLoaderUtil {
     private static final String CHAT_FXML = "/fxml/chat.fxml";
     private static final String SEPARATOR_FXML = "/fxml/separator.fxml";
 
+    private SceneLoaderUtil() {}
+
     public static Parent loadSeparator(String roomName) throws IOException {
         return SceneLoaderUtil.loadScene(SEPARATOR_FXML, (controller) -> {
             ((SeparatorController) controller).getRoomNameLabel().setText(roomName);
