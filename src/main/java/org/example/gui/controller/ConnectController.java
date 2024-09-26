@@ -3,7 +3,7 @@ package org.example.gui.controller;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.control.TextField;
-import org.example.TcpClient;
+import org.example.gui.TcpClient;
 import org.example.entity.User;
 import org.example.gui.GuiApplication;
 import org.example.gui.util.SceneLoaderUtil;

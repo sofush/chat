@@ -9,7 +9,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
-import org.example.TcpClient;
+import org.example.gui.TcpClient;
 import org.example.entity.User;
 import org.example.gui.util.MessageParserUtil;
 import org.example.gui.ReadMessageService;
@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.List;
 
 public class ChatController implements Closeable {
     private final Logger logger = LoggerFactory.getLogger(ChatController.class);

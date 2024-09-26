@@ -4,6 +4,7 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import org.example.entity.User;
+import org.example.gui.TcpClient;
 import org.example.protocol.Message;
 import org.example.protocol.MessageTransfer;
 import org.example.protocol.MessageType;

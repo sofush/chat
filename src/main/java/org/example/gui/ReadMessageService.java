@@ -2,7 +2,6 @@ package org.example.gui;
 
 import javafx.concurrent.ScheduledService;
 import javafx.concurrent.Task;
-import org.example.TcpClient;
 import org.example.protocol.Message;
 import org.example.protocol.MessageTransfer;
 

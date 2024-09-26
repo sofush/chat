@@ -2,7 +2,7 @@ package org.example.gui.util;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import org.example.TcpClient;
+import org.example.gui.TcpClient;
 import org.example.entity.User;
 import org.example.gui.GuiApplication;
 import org.example.gui.controller.ChatController;
