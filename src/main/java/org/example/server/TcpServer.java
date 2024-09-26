@@ -8,6 +8,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.net.SocketException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.SubmissionPublisher;
@@ -31,14 +32,20 @@ public class TcpServer implements Runnable, Closeable {
             var client = this.channel.accept();
             this.executors.execute(new ClientHandler(this.publisher, client));
             this.logger.info("A client has connected.");
-        } catch (IOException e) {
+        } catch (SocketException e) {
+            this.logger.info("ServerSocket accept() call cancelled because channel is closed.");
+        } catch (Exception e) {
             this.logger.error("Could not accept or register client.", e);
         }
     }
 
+    public int getPort() {
+        return this.channel.getLocalPort();
+    }
+
     @Override
     public void run() {
-        while (!Thread.interrupted()) {
+        while (!Thread.interrupted() && !this.channel.isClosed()) {
             this.acceptClient();
         }
 
