@@ -4,12 +4,11 @@ import javafx.concurrent.WorkerStateEvent;
 import javafx.fxml.FXML;
 import javafx.event.Event;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.TextFlow;
 import org.example.TcpClient;
 import org.example.entity.User;
 import org.example.gui.util.MessageParserUtil;
@@ -23,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.List;
 
 public class ChatController implements Closeable {
     private final Logger logger = LoggerFactory.getLogger(ChatController.class);
@@ -114,12 +114,12 @@ public class ChatController implements Closeable {
     }
 
     private void notifyRoomSwitch() {
-        Label pre = new Label("Du deltager nu i rummet ");
-        Label post = new Label(this.user.getRoom());
-        post.setStyle("-fx-font-weight: 700");
-        TextFlow flow = new TextFlow();
-        flow.getChildren().addAll(pre, post);
-        this.messageContainer.getChildren().add(flow);
+        try {
+            Parent separator = SceneLoaderUtil.loadSeparator(this.user.getRoom());
+            this.messageContainer.getChildren().add(separator);
+        } catch (IOException e) {
+            this.logger.error("Could not load FXML for separator.");
+        }
     }
 
     @Override

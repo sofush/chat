@@ -8,6 +8,7 @@ import org.example.gui.GuiApplication;
 import org.example.gui.controller.ChatController;
 import org.example.gui.controller.ChatMessageController;
 import org.example.gui.controller.ConnectController;
+import org.example.gui.controller.SeparatorController;
 import org.example.protocol.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +22,13 @@ public class SceneLoaderUtil {
     private static final String MESSAGE_FXML = "/fxml/message.fxml";
     private static final String CONNECT_FXML = "/fxml/connect.fxml";
     private static final String CHAT_FXML = "/fxml/chat.fxml";
+    private static final String SEPARATOR_FXML = "/fxml/separator.fxml";
+
+    public static Parent loadSeparator(String roomName) throws IOException {
+        return SceneLoaderUtil.loadScene(SEPARATOR_FXML, (controller) -> {
+            ((SeparatorController) controller).getRoomNameLabel().setText(roomName);
+        });
+    }
 
     public static Parent loadChatScene(User user, TcpClient client) throws IOException {
         return SceneLoaderUtil.loadScene(CHAT_FXML, (controller) -> {
@@ -28,6 +36,7 @@ public class SceneLoaderUtil {
             ((ChatController) controller).setUser(user);
         });
     }
+
     public static Parent loadChatMessageScene(Message message) throws IOException {
         return SceneLoaderUtil.loadScene(MESSAGE_FXML, (controller) -> {
             ChatMessageController c = (ChatMessageController) controller;
