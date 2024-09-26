@@ -1,0 +1,38 @@
+@startuml
+scale 1920*1080
+skinparam linetype ortho
+hide <<hidden>>
+
+package gui {
+    package controller {
+        class ChatController {}
+        class ConnectController {}
+        class ChatMessageController {}
+        class SeparatorController {}
+    }
+
+    class TcpClient {}
+    class ReadMessageService {}
+}
+
+package entity {
+    class User {}
+    class Message {}
+    class MessageHeader {}
+    class MessageArguments {}
+    enum MessageType {}
+}
+
+package server {
+    class TcpServer {}
+    class ClientHandler {}
+}
+
+package UI <<node>> {
+
+}
+
+gui --> entity
+server --> entity
+UI --> gui
+@enduml

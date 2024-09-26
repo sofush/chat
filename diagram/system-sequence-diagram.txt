@@ -1,0 +1,10 @@
+@startuml
+scale 1920*1080
+actor KlientA
+actor KlientB
+KlientA -> Server: Tilslutter til server
+KlientB -> Server: Tilslutter til server
+KlientB -> Server: Sender en broadcast besked
+KlientB <- Server: Modtager egen unicast/broadcast besked
+KlientA <- Server: Modtager unicast/broadcast besked
+@enduml
