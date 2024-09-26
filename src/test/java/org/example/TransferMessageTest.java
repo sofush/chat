@@ -59,6 +59,14 @@ public class TransferMessageTest extends TestCase {
                 MessageType.BROADCAST.toInt()
             );
             assertEquals(
+                (String) received.getArguments().nth(0),
+                room
+            );
+            assertEquals(
+                (String) received.getArguments().nth(1),
+                userA.getUsername()
+            );
+            assertEquals(
                 (String) received.getArguments().nth(2),
                 message
             );
