@@ -2,13 +2,17 @@ use std::time::{Duration, Instant};
 
 use color_eyre::Result;
 use crossterm::event::{self, KeyCode, KeyEventKind, KeyModifiers};
-use ratatui::layout::{Constraint, Layout, Position};
+use ratatui::layout::{Constraint, Layout, Position, Rect};
 use ratatui::style::{Color, Modifier, Style, Stylize};
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, List, ListItem, Paragraph};
 use ratatui::{DefaultTerminal, Frame};
-use tachyonfx::ColorSpace;
+use tachyonfx::Interpolation;
 use tachyonfx::{EffectManager, fx};
+
+static BG: Color = Color::from_u32(0x1D2021);
+static WIDGET_BG: Color = Color::from_u32(0x444444);
+static WIDGET_FG: Color = Color::from_u32(0xdddddd);
 
 fn main() -> Result<()> {
     color_eyre::install()?;
@@ -124,18 +128,41 @@ impl App {
 
     fn run(mut self, terminal: &mut DefaultTerminal) -> Result<()> {
         let mut effects: EffectManager<()> = EffectManager::default();
-        let bg = Color::from_u32(0x1D2021);
-        let linear_rgb = ColorSpace::Rgb;
-        let effect = fx::fade_from(bg, bg, 1000).with_color_space(linear_rgb);
-        effects.add_effect(effect);
-
         let mut last_frame = Instant::now();
+
+        let layout = Layout::vertical([
+            Constraint::Length(1),
+            Constraint::Fill(1),
+            Constraint::Length(3),
+        ])
+        .margin(2)
+        .spacing(1);
+
+        let [help_area, messages_area, input_area] =
+            terminal.get_frame().area().layout(&layout);
+
+        for area in [help_area, messages_area, input_area] {
+            let timer = (1000, Interpolation::Linear);
+
+            let effect = fx::fade_from(BG, BG, timer).with_area(area);
+
+            effects.add_effect(effect);
+        }
 
         loop {
             let elapsed = last_frame.elapsed();
             last_frame = Instant::now();
 
-            terminal.draw(|frame| self.render(frame, &mut effects, elapsed))?;
+            terminal.draw(|frame| {
+                self.render(
+                    frame,
+                    &mut effects,
+                    elapsed,
+                    help_area,
+                    input_area,
+                    messages_area,
+                )
+            })?;
 
             if event::poll(Duration::from_millis(16))?
                 && let Some(key) = event::read()?.as_key_press_event()
@@ -187,23 +214,14 @@ impl App {
         frame: &mut Frame,
         effects: &mut EffectManager<()>,
         elapsed: Duration,
+        help_area: Rect,
+        input_area: Rect,
+        messages_area: Rect,
     ) {
-        let layout = Layout::vertical([
-            Constraint::Length(1),
-            Constraint::Fill(1),
-            Constraint::Length(3),
-        ])
-        .margin(2)
-        .spacing(1);
-
-        let bg = Color::from_u32(0x1D2021);
         frame.render_widget(
-            Block::default().style(Style::default().bg(bg)),
+            Block::default().style(Style::default().bg(BG)),
             frame.area(),
         );
-
-        let [help_area, messages_area, input_area] =
-            frame.area().layout(&layout);
 
         let (msg, style) = match self.input_mode {
             InputMode::Normal => (
@@ -228,16 +246,18 @@ impl App {
             ),
         };
         let text = Text::from(Line::from(msg)).patch_style(style);
-        let help_message = Paragraph::new(text);
+        let help_message = Paragraph::new(text).bg(WIDGET_BG);
 
         frame.render_widget(help_message, help_area);
 
         let input = Paragraph::new(self.input.as_str())
             .style(match self.input_mode {
-                InputMode::Normal => Style::default(),
-                InputMode::Editing => Style::default().fg(Color::Yellow),
+                InputMode::Normal => Style::default().bg(BG),
+                InputMode::Editing => Style::default().fg(Color::Yellow).bg(BG),
             })
-            .block(Block::bordered().title("Input"));
+            .block(Block::default().title("Input"))
+            .bg(WIDGET_BG)
+            .fg(WIDGET_FG);
 
         frame.render_widget(input, input_area);
 
@@ -245,7 +265,7 @@ impl App {
             InputMode::Normal => {}
             #[expect(clippy::cast_possible_truncation)]
             InputMode::Editing => frame.set_cursor_position(Position::new(
-                input_area.x + self.character_index as u16 + 1,
+                input_area.x + self.character_index as u16,
                 input_area.y + 1,
             )),
         }
@@ -260,8 +280,10 @@ impl App {
             })
             .collect();
 
-        let messages =
-            List::new(messages).block(Block::bordered().title("Messages"));
+        let messages = List::new(messages)
+            .block(Block::default().title("Messages"))
+            .bg(WIDGET_BG)
+            .fg(WIDGET_FG);
 
         frame.render_widget(messages, messages_area);
 
