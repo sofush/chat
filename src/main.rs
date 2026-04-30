@@ -5,7 +5,7 @@ use crossterm::event::{self, KeyCode, KeyEventKind, KeyModifiers};
 use ratatui::layout::{Constraint, Layout, Position, Rect};
 use ratatui::style::{Color, Modifier, Style, Stylize};
 use ratatui::text::{Line, Span, Text};
-use ratatui::widgets::{Block, List, ListItem, Paragraph};
+use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph};
 use ratatui::{DefaultTerminal, Frame};
 use tachyonfx::Interpolation;
 use tachyonfx::{EffectManager, fx};
@@ -189,6 +189,7 @@ impl App {
                             && key.code == KeyCode::Char('c')
                         {
                             self.input_mode = InputMode::Normal;
+                            continue;
                         }
 
                         match key.code {
@@ -255,7 +256,7 @@ impl App {
                 InputMode::Normal => Style::default().bg(BG),
                 InputMode::Editing => Style::default().fg(Color::Yellow).bg(BG),
             })
-            .block(Block::default().title("Input"))
+            .block(Block::default().title("Input").bold().borders(Borders::ALL))
             .bg(WIDGET_BG)
             .fg(WIDGET_FG);
 
@@ -265,7 +266,7 @@ impl App {
             InputMode::Normal => {}
             #[expect(clippy::cast_possible_truncation)]
             InputMode::Editing => frame.set_cursor_position(Position::new(
-                input_area.x + self.character_index as u16,
+                input_area.x + self.character_index as u16 + 1,
                 input_area.y + 1,
             )),
         }
