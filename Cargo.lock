@@ -232,6 +232,8 @@ dependencies = [
  "color-eyre",
  "crossterm",
  "ratatui",
+ "serde",
+ "serde_json",
  "tachyonfx",
 ]
 
