@@ -6,10 +6,12 @@ use std::{
 };
 
 use crate::{message::Message, util};
+use uuid::Uuid;
 
 pub struct Client {
     write: TcpStream,
     reader: JoinHandle<()>,
+    uuid: Uuid,
 }
 
 impl Client {
@@ -22,7 +24,14 @@ impl Client {
         let reader =
             thread::spawn(move || util::read_from_stream(read, Box::new(cb)));
 
-        Ok(Self { write, reader })
+        let uuid = uuid::Uuid::new_v4();
+        let mut this = Self {
+            write,
+            reader,
+            uuid,
+        };
+        this.send(Message::Join(uuid.to_string()));
+        Ok(this)
     }
 
     pub fn send(&mut self, message: Message) {
