@@ -7,7 +7,10 @@ use std::{
 
 use crate::{message::Message, participant::Participant};
 
-fn do_broadcast(message: Message, connections: Arc<Mutex<Vec<Participant>>>) {
+fn handle_participant_msg(
+    message: Message,
+    connections: Arc<Mutex<Vec<Participant>>>,
+) {
     let Ok(mut connections) = connections.lock() else {
         return;
     };
@@ -44,17 +47,20 @@ impl Server {
 
         let broadcast_fn_connections = connections.clone();
         let broadcast_fn = move |msg: Message| {
-            do_broadcast(msg, broadcast_fn_connections.clone());
+            handle_participant_msg(msg, broadcast_fn_connections.clone());
         };
 
         self.connection_thread = Some(thread::spawn(move || {
             loop {
                 if let Ok((stream, _)) = listener.accept() {
                     let mut c = connections.lock().unwrap();
+                    let uuid = uuid::Uuid::new_v4();
 
-                    if let Ok(participant) =
-                        Participant::new(stream, Box::new(broadcast_fn.clone()))
-                    {
+                    if let Ok(participant) = Participant::new(
+                        uuid,
+                        stream,
+                        Box::new(broadcast_fn.clone()),
+                    ) {
                         println!("Client connected.");
                         c.push(participant);
                     }
