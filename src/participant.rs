@@ -1,32 +1,14 @@
 use std::{
-    io::{self, BufReader, Read, Write as _},
+    io::{self, Write as _},
     net::TcpStream,
     thread::{self, JoinHandle},
 };
 
-use serde::Deserialize;
-
-use crate::message::Message;
+use crate::{message::Message, util};
 
 pub struct Participant {
     write: TcpStream,
     reader: JoinHandle<()>,
-}
-
-pub fn read_from_stream(
-    stream: TcpStream,
-    callback: Box<dyn Fn(Message) -> ()>,
-) {
-    let mut reader = BufReader::new(stream);
-
-    loop {
-        let mut de = serde_json::Deserializer::from_reader(&mut reader);
-        let Ok(message) = Message::deserialize(&mut de) else {
-            return;
-        };
-
-        callback(message)
-    }
 }
 
 impl Participant {
@@ -37,7 +19,7 @@ impl Participant {
         let clone = stream.try_clone()?;
 
         let reader = thread::spawn(move || {
-            read_from_stream(clone, callback);
+            util::read_from_stream(clone, callback);
         });
 
         Ok(Self {
