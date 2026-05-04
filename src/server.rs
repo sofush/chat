@@ -51,6 +51,7 @@ impl Server {
                     if let Ok(participant) =
                         Participant::new(stream, Box::new(broadcast_fn.clone()))
                     {
+                        println!("Client connected.");
                         c.push(participant);
                     }
                 }
