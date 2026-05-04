@@ -3,5 +3,5 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum Message {
     Internal(),
-    User(),
+    User(String),
 }

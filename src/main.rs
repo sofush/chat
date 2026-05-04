@@ -88,25 +88,23 @@ fn main() -> io::Result<()> {
                             };
 
                             println!("{status}");
+                        } else if let Some(c) = &mut client {
+                            c.send(message::Message::User(input.to_string()));
+                            execute!(
+                                stdout,
+                                cursor::MoveToColumn(0),
+                                terminal::Clear(ClearType::CurrentLine),
+                            )?;
+                            println!("{input}");
                         } else {
-                            if let Some(c) = &mut client {
-                                c.send(message::Message::User());
-                                execute!(
-                                    stdout,
-                                    cursor::MoveToColumn(0),
-                                    terminal::Clear(ClearType::CurrentLine),
-                                )?;
-                                println!("{input}");
-                            } else {
-                                execute!(
-                                    stdout,
-                                    cursor::MoveToColumn(0),
-                                    terminal::Clear(ClearType::CurrentLine),
-                                )?;
-                                println!(
-                                    "You must connect to a server before sending messages."
-                                );
-                            }
+                            execute!(
+                                stdout,
+                                cursor::MoveToColumn(0),
+                                terminal::Clear(ClearType::CurrentLine),
+                            )?;
+                            println!(
+                                "You must connect to a server before sending messages."
+                            );
                         }
                     }
                     input.clear();

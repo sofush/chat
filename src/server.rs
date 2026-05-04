@@ -13,7 +13,9 @@ fn do_broadcast(message: Message, connections: Arc<Mutex<Vec<Participant>>>) {
     };
 
     for c in &mut *connections {
-        c.send(message.clone());
+        if c.send(message.clone()).is_err() {
+            println!("Failed to broadcast a message.");
+        }
     }
 }
 
@@ -21,6 +23,7 @@ pub struct Server {
     addr: SocketAddr,
     connections: Arc<Mutex<Vec<Participant>>>,
     connection_thread: Option<JoinHandle<()>>,
+    reader: Option<JoinHandle<()>>,
 }
 
 impl Server {
@@ -30,6 +33,7 @@ impl Server {
         Ok(Self {
             connections,
             connection_thread: None,
+            reader: None,
             addr,
         })
     }

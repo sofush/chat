@@ -14,7 +14,7 @@ pub struct Participant {
 impl Participant {
     pub fn new(
         stream: TcpStream,
-        callback: Box<dyn Fn(Message) -> () + Send>,
+        callback: Box<dyn Fn(Message) + Send>,
     ) -> io::Result<Self> {
         let clone = stream.try_clone()?;
 
@@ -28,7 +28,9 @@ impl Participant {
         })
     }
 
-    pub fn send(&mut self, _message: Message) {
-        let _ = writeln!(self.write, "Hello, world!");
+    pub fn send(&mut self, msg: Message) -> serde_json::error::Result<()> {
+        let serialized = serde_json::to_string(&msg)?;
+        let _ = writeln!(self.write, "{serialized}");
+        Ok(())
     }
 }

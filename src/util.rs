@@ -4,10 +4,7 @@ use serde::Deserialize as _;
 
 use crate::message::Message;
 
-pub fn read_from_stream(
-    stream: TcpStream,
-    callback: Box<dyn Fn(Message) -> ()>,
-) {
+pub fn read_from_stream(stream: TcpStream, callback: Box<dyn Fn(Message)>) {
     let mut reader = BufReader::new(stream);
 
     loop {
