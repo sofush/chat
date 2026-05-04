@@ -2,6 +2,7 @@ use std::{
     io::{self, Write},
     net::{SocketAddr, TcpStream},
     thread::{self, JoinHandle},
+    time::Duration,
 };
 
 use crate::{message::Message, util};
@@ -13,7 +14,7 @@ pub struct Client {
 
 impl Client {
     pub fn new(addr: SocketAddr) -> io::Result<Self> {
-        let write = TcpStream::connect(addr)?;
+        let write = TcpStream::connect_timeout(&addr, Duration::from_secs(5))?;
         let read = write.try_clone()?;
         let cb = |msg| {
             println!("{msg:?}");
