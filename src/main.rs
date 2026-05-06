@@ -127,6 +127,11 @@ fn handle_command(
         return Ok(());
     }
 
+    if input.starts_with("/") {
+        util::print(&output, format!("Unrecognized command: {input}"));
+        return Ok(());
+    }
+
     if let Some(c) = client {
         c.send(message::Message::User(input.to_string()));
         util::print(&output, input);
@@ -137,6 +142,7 @@ fn handle_command(
         &output,
         "You must connect to a server before sending messages.",
     );
+
     Ok(())
 }
 
