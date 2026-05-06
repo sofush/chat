@@ -6,7 +6,7 @@ use std::{
     time::Duration,
 };
 
-use crate::{message::Message, util};
+use crate::{message::Message, output::Output, util};
 
 struct ClientData {
     id: Option<String>,
@@ -16,14 +16,19 @@ pub struct Client {
     write: TcpStream,
     reader: JoinHandle<()>,
     data: Arc<Mutex<ClientData>>,
+    output: Arc<Mutex<Output>>,
 }
 
 impl Client {
-    pub fn new(addr: SocketAddr) -> io::Result<Self> {
+    pub fn new(
+        addr: SocketAddr,
+        output: Arc<Mutex<Output>>,
+    ) -> io::Result<Self> {
         let write = TcpStream::connect_timeout(&addr, Duration::from_secs(5))?;
         let read = write.try_clone()?;
         let data = Arc::new(Mutex::new(ClientData { id: None }));
         let data_clone = data.clone();
+        let output_clone = output.clone();
 
         let cb = move |msg| {
             if let Message::AssignId(id) = &msg
@@ -33,7 +38,7 @@ impl Client {
                 return;
             }
 
-            println!("{msg:?}");
+            util::print(&output_clone, format!("{msg:?}"));
         };
         let reader =
             thread::spawn(move || util::read_from_stream(read, Box::new(cb)));
@@ -42,6 +47,7 @@ impl Client {
             write,
             reader,
             data,
+            output,
         };
         Ok(this)
     }

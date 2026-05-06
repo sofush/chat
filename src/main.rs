@@ -1,6 +1,7 @@
 use std::io::{self, Write, stdout};
 use std::net::SocketAddr;
 use std::str::FromStr;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use crossterm::event::KeyModifiers;
@@ -12,16 +13,20 @@ use crossterm::{
 };
 
 use crate::client::Client;
+use crate::output::Output;
 use crate::server::Server;
 
 mod client;
 mod message;
+mod output;
 mod participant;
 mod server;
 mod util;
 
 fn main() -> io::Result<()> {
     terminal::enable_raw_mode()?;
+
+    let output = Arc::new(Mutex::new(Output::new()));
 
     let addr = SocketAddr::from_str("127.0.0.1:3000").unwrap();
     let mut input = String::new();
@@ -36,12 +41,13 @@ fn main() -> io::Result<()> {
                 &mut server,
                 &mut client,
                 addr,
+                output.clone(),
             )? {
                 break;
             }
         }
 
-        render_input(&input)?;
+        util::print_prompt(&output);
     }
 
     terminal::disable_raw_mode()?;
@@ -65,18 +71,23 @@ fn handle_key_event(
     server: &mut Option<Server>,
     client: &mut Option<Client>,
     addr: SocketAddr,
+    output: Arc<Mutex<Output>>,
 ) -> io::Result<bool> {
     match key.code {
         KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
             print!("^C");
             return Ok(true);
         }
-        KeyCode::Char(c) => input.push(c),
+        KeyCode::Char(c) => {
+            input.push(c);
+            util::set_input(&output, input.to_string());
+        }
         KeyCode::Backspace => {
             input.pop();
+            util::set_input(&output, input.to_string());
         }
         KeyCode::Enter => {
-            return handle_enter(input, server, client, addr);
+            return handle_enter(input, server, client, addr, output.clone());
         }
         _ => {}
     }
@@ -89,14 +100,15 @@ fn handle_enter(
     server: &mut Option<Server>,
     client: &mut Option<Client>,
     addr: SocketAddr,
+    output: Arc<Mutex<Output>>,
 ) -> io::Result<bool> {
     if input.trim() == "exit" {
         return Ok(true);
     }
 
-    clear_line()?;
-    handle_command(input, server, client, addr)?;
+    handle_command(input, server, client, addr, output.clone())?;
     input.clear();
+    util::clear_input(&output);
     Ok(false)
 }
 
@@ -105,24 +117,26 @@ fn handle_command(
     server: &mut Option<Server>,
     client: &mut Option<Client>,
     addr: SocketAddr,
+    output: Arc<Mutex<Output>>,
 ) -> io::Result<()> {
-    if try_host(input, server, addr)? {
+    if try_host(input, server, addr, output.clone())? {
         return Ok(());
     }
 
-    if try_connect(input, client, addr)? {
+    if try_connect(input, client, addr, output.clone())? {
         return Ok(());
     }
 
     if let Some(c) = client {
         c.send(message::Message::User(input.to_string()));
-        clear_line()?;
-        println!("{input}");
+        util::print(&output, input);
         return Ok(());
     }
 
-    clear_line()?;
-    println!("You must connect to a server before sending messages.");
+    util::print(
+        &output,
+        "You must connect to a server before sending messages.",
+    );
     Ok(())
 }
 
@@ -130,17 +144,16 @@ fn try_host(
     input: &str,
     server: &mut Option<Server>,
     addr: SocketAddr,
+    output: Arc<Mutex<Output>>,
 ) -> io::Result<bool> {
     if !input.starts_with("/host") || server.is_some() {
         return Ok(false);
     }
 
-    if let Ok(mut srv) = Server::new(addr) {
+    if let Ok(mut srv) = Server::new(addr, output.clone()) {
         srv.host()?;
         *server = Some(srv);
-
-        clear_line()?;
-        println!("Listening on {addr}!");
+        util::print(&output, format!("Listening on {addr}!"));
     }
 
     Ok(true)
@@ -150,18 +163,17 @@ fn try_connect(
     input: &str,
     client: &mut Option<Client>,
     addr: SocketAddr,
+    output: Arc<Mutex<Output>>,
 ) -> io::Result<bool> {
     if !input.starts_with("/connect") || client.is_some() {
         return Ok(false);
     }
 
-    println!("Connecting to {addr}...");
+    util::print(&output, format!("Connecting to {addr}..."));
 
-    if let Ok(c) = Client::new(addr) {
+    if let Ok(c) = Client::new(addr, output.clone()) {
         *client = Some(c);
     }
-
-    clear_line()?;
 
     let status = if client.is_some() {
         "Connected!"
@@ -169,21 +181,6 @@ fn try_connect(
         "Could not connect."
     };
 
-    println!("{status}");
-
+    util::print(&output, status);
     Ok(true)
-}
-
-fn render_input(input: &str) -> io::Result<()> {
-    clear_line()?;
-    print!("> {}", input);
-    stdout().flush()
-}
-
-fn clear_line() -> io::Result<()> {
-    execute!(
-        stdout(),
-        cursor::MoveToColumn(0),
-        terminal::Clear(ClearType::CurrentLine),
-    )
 }

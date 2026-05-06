@@ -5,11 +5,12 @@ use std::{
     thread::{self, JoinHandle},
 };
 
-use crate::{message::Message, participant::Participant};
+use crate::{message::Message, output::Output, participant::Participant, util};
 
 fn handle_participant_msg(
     message: Message,
     connections: Arc<Mutex<Vec<Participant>>>,
+    output: Arc<Mutex<Output>>,
 ) {
     let Ok(mut connections) = connections.lock() else {
         return;
@@ -17,7 +18,7 @@ fn handle_participant_msg(
 
     for c in &mut *connections {
         if c.send(message.clone()).is_err() {
-            println!("Failed to broadcast a message.");
+            util::print(&output, "Failed to broadcast a message.");
         }
     }
 }
@@ -27,10 +28,14 @@ pub struct Server {
     connections: Arc<Mutex<Vec<Participant>>>,
     connection_thread: Option<JoinHandle<()>>,
     reader: Option<JoinHandle<()>>,
+    output: Arc<Mutex<Output>>,
 }
 
 impl Server {
-    pub fn new(addr: SocketAddr) -> io::Result<Self> {
+    pub fn new(
+        addr: SocketAddr,
+        output: Arc<Mutex<Output>>,
+    ) -> io::Result<Self> {
         let connections: Arc<Mutex<Vec<Participant>>> = Default::default();
 
         Ok(Self {
@@ -38,6 +43,7 @@ impl Server {
             connection_thread: None,
             reader: None,
             addr,
+            output,
         })
     }
 
@@ -46,10 +52,16 @@ impl Server {
         let connections = self.connections.clone();
 
         let broadcast_fn_connections = connections.clone();
+        let output_clone = self.output.clone();
         let broadcast_fn = move |msg: Message| {
-            handle_participant_msg(msg, broadcast_fn_connections.clone());
+            handle_participant_msg(
+                msg,
+                broadcast_fn_connections.clone(),
+                output_clone.clone(),
+            );
         };
 
+        let output_clone = self.output.clone();
         self.connection_thread = Some(thread::spawn(move || {
             loop {
                 if let Ok((stream, _)) = listener.accept() {
@@ -61,7 +73,7 @@ impl Server {
                         stream,
                         Box::new(broadcast_fn.clone()),
                     ) {
-                        println!("Client connected.");
+                        util::print(&output_clone.clone(), "Client connected.");
                         c.push(participant);
                     }
                 }
