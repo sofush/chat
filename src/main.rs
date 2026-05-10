@@ -1,4 +1,4 @@
-use std::io::{self, Write, stdout};
+use std::io;
 use std::net::SocketAddr;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
@@ -6,10 +6,8 @@ use std::time::Duration;
 
 use crossterm::event::KeyModifiers;
 use crossterm::{
-    cursor,
     event::{self, Event, KeyCode, KeyEvent},
-    execute,
-    terminal::{self, ClearType},
+    terminal,
 };
 
 use crate::client::Client;
