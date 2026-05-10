@@ -4,6 +4,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+use owo_colors::OwoColorize as _;
 use serde::Deserialize as _;
 
 use crate::{
@@ -22,6 +23,20 @@ pub fn read_from_stream(stream: TcpStream, callback: Box<dyn Fn(Message)>) {
         };
 
         callback(message)
+    }
+}
+
+pub fn warn(output: &Arc<Mutex<Output>>, message: impl Into<Printable>) {
+    if let Ok(output) = output.lock() {
+        let warn = " WARN ".black().on_yellow().to_string();
+        let printable: Printable = message.into();
+
+        let s = match printable {
+            Printable::String(s) => s,
+            Printable::Message(message) => format!("{message:?}"),
+        };
+
+        output.print(format!("{warn} {}", s.yellow()));
     }
 }
 

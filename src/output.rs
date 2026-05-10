@@ -4,8 +4,10 @@ use std::{
     thread::{self, JoinHandle},
 };
 
+use chrono::Local;
 use crossterm::{
     cursor, execute,
+    style::Stylize,
     terminal::{self, ClearType},
 };
 
@@ -35,13 +37,22 @@ impl From<Message> for Printable {
 }
 
 fn print(s: &str, input: &str) -> io::Result<()> {
+    let now = format!(
+        " {} ",
+        Local::now().format("%Y-%m-%dT%H:%M:%SZ").to_string()
+    )
+    .on_dark_blue()
+    .bold();
+
     clear_line()?;
+
+    print!(" {now} ");
 
     if !s.is_empty() {
         println!("{s}");
     }
 
-    print!("> {}", input);
+    print!("{} {}", "$".bold().grey(), input);
     stdout().flush()
 }
 

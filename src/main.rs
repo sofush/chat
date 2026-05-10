@@ -5,6 +5,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use crossterm::event::KeyModifiers;
+use crossterm::style::Stylize;
 use crossterm::{
     event::{self, Event, KeyCode, KeyEvent},
     terminal,
@@ -136,7 +137,7 @@ fn handle_command(
         return Ok(());
     }
 
-    util::print(
+    util::warn(
         &output,
         "You must connect to a server before sending messages.",
     );
