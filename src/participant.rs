@@ -31,7 +31,7 @@ impl Participant {
             reader,
         };
 
-        this.send(Message::AssignId(id.to_string()))?;
+        this.send(Message::AssignId { id: id.to_string() })?;
         Ok(this)
     }
 

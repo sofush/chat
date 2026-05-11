@@ -2,8 +2,48 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum Message {
-    /// A text message sent by a user.
-    User(String),
+    /// Announcement that a user has connected to the chat room.
+    AnnounceJoin { id: String },
+
+    /// Internal only. The user has entered an unencrypted message in the chat.
+    Unencrypted(String),
+
+    /// A text message encrypted with the established shared AES key.
+    Encrypted {
+        sender_id: String,
+        recipient_id: String,
+
+        /// AES-GCM ciphertext encoded as base64/hex.
+        ciphertext: String,
+
+        /// Nonce/IV used for AES encryption.
+        nonce: String,
+    },
+
     /// A message sent from server to client, informing the client of their ID.
-    AssignId(String),
+    AssignId { id: String },
+
+    /// Initiates a Diffie-Hellman key exchange.
+    KeyExchangeInit {
+        sender_id: String,
+        recipient_id: String,
+
+        /// Sender's ephemeral DH public key.
+        public_key: String,
+    },
+
+    /// Responds to a DH key exchange request.
+    KeyExchangeResponse {
+        sender_id: String,
+        recipient_id: String,
+
+        /// Responder's ephemeral DH public key.
+        public_key: String,
+    },
+
+    /// Optional confirmation that both parties derived the key successfully.
+    KeyExchangeConfirm {
+        sender_id: String,
+        recipient_id: String,
+    },
 }

@@ -58,11 +58,39 @@ fn print(s: &str, input: &str) -> io::Result<()> {
 
 fn print_message(msg: Message, input: &str) -> io::Result<()> {
     let s = match &msg {
-        Message::User(u) => u.as_str(),
-        Message::AssignId(id) => &format!("You have been assigned ID: {id}"),
+        Message::AnnounceJoin { id } => {
+            format!("`{}` has joined the chat", id.clone().yellow().dim())
+        }
+        Message::Encrypted {
+            sender_id,
+            recipient_id,
+            ciphertext,
+            nonce,
+        } => format!("?? Encrypted ??"),
+        Message::AssignId { id } => {
+            format!(
+                "You have been assigned the ID: {}",
+                id.clone().yellow().dim()
+            )
+        }
+        Message::KeyExchangeInit {
+            sender_id,
+            recipient_id,
+            public_key,
+        } => format!("?? KeyExchangeInit ??"),
+        Message::KeyExchangeResponse {
+            sender_id,
+            recipient_id,
+            public_key,
+        } => format!("?? KeyExchangeResponse ??"),
+        Message::KeyExchangeConfirm {
+            sender_id,
+            recipient_id,
+        } => format!("?? KeyExchangeConfirm ??"),
+        Message::Unencrypted(_) => format!("?? Unencrypted ??"),
     };
 
-    print(s, input)
+    print(&s, input)
 }
 
 fn clear_line() -> io::Result<()> {

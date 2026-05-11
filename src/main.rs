@@ -5,7 +5,6 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use crossterm::event::KeyModifiers;
-use crossterm::style::Stylize;
 use crossterm::{
     event::{self, Event, KeyCode, KeyEvent},
     terminal,
@@ -16,6 +15,7 @@ use crate::output::Output;
 use crate::server::Server;
 
 mod client;
+mod crypto;
 mod message;
 mod output;
 mod participant;
@@ -136,7 +136,7 @@ fn handle_command(
     }
 
     if let Some(c) = client {
-        c.send(message::Message::User(input.to_string()));
+        c.send(message::Message::Unencrypted(input.to_string()));
         util::print(&output, input);
         return Ok(());
     }
