@@ -77,6 +77,10 @@ fn handle_key_event(
             print!("^C");
             return Ok(true);
         }
+        KeyCode::Char('w') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+            *input = util::ctrl_w_delete(input.as_str());
+            util::set_input(&output, input.to_string());
+        }
         KeyCode::Char(c) => {
             input.push(c);
             util::set_input(&output, input.to_string());

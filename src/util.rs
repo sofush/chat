@@ -63,3 +63,40 @@ pub fn print_prompt(output: &Arc<Mutex<Output>>) {
         output.render_input();
     }
 }
+
+pub fn ctrl_w_delete(input: &str) -> String {
+    let mut chars: Vec<char> = input.chars().collect();
+
+    if chars.is_empty() {
+        return String::new();
+    }
+
+    #[derive(PartialEq)]
+    enum Kind {
+        Whitespace,
+        Keyword,
+        Punctuation,
+    }
+
+    fn classify(c: char) -> Kind {
+        if c.is_whitespace() {
+            Kind::Whitespace
+        } else if c.is_alphanumeric() || c == '_' {
+            Kind::Keyword
+        } else {
+            Kind::Punctuation
+        }
+    }
+
+    let last_kind = classify(*chars.last().unwrap());
+
+    while let Some(&c) = chars.last() {
+        if classify(c) == last_kind {
+            chars.pop();
+        } else {
+            break;
+        }
+    }
+
+    chars.into_iter().collect()
+}
