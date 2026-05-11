@@ -52,7 +52,7 @@ fn print(s: &str, input: &str) -> io::Result<()> {
         println!("{s}");
     }
 
-    print!("{} {}", "$".bold().grey(), input);
+    print!("{} {}", " INPUT ".bold().black().on_white(), input);
     stdout().flush()
 }
 
