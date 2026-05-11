@@ -89,13 +89,12 @@ impl Client {
         let reader =
             thread::spawn(move || util::read_from_stream(read, Box::new(cb)));
 
-        let this = Self {
+        Ok(Self {
             write,
             reader,
             data,
             output,
-        };
-        Ok(this)
+        })
     }
 
     pub fn send(&mut self, message: Message) {
