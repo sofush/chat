@@ -24,7 +24,7 @@ impl From<&'_ str> for Printable {
     }
 }
 
-impl<'a> From<String> for Printable {
+impl From<String> for Printable {
     fn from(value: String) -> Self {
         Self::String(value)
     }
@@ -37,12 +37,9 @@ impl From<Message> for Printable {
 }
 
 fn print(s: &str, input: &str) -> io::Result<()> {
-    let now = format!(
-        " {} ",
-        Local::now().format("%Y-%m-%dT%H:%M:%SZ").to_string()
-    )
-    .on_dark_blue()
-    .bold();
+    let now = format!(" {} ", Local::now().format("%Y-%m-%dT%H:%M:%SZ"))
+        .on_dark_blue()
+        .bold();
 
     clear_line()?;
 
@@ -66,28 +63,19 @@ fn print_message(msg: Message, input: &str) -> io::Result<()> {
             recipient_id,
             ciphertext,
             nonce,
-        } => format!("?? Encrypted ??"),
+        } => "?? Encrypted ??".to_string(),
         Message::AssignId { id } => {
             format!(
                 "You have been assigned the ID: {}",
                 id.clone().yellow().dim()
             )
         }
-        Message::KeyExchangeInit {
+        Message::KeyExchange {
             sender_id,
             recipient_id,
             public_key,
-        } => format!("?? KeyExchangeInit ??"),
-        Message::KeyExchangeResponse {
-            sender_id,
-            recipient_id,
-            public_key,
-        } => format!("?? KeyExchangeResponse ??"),
-        Message::KeyExchangeConfirm {
-            sender_id,
-            recipient_id,
-        } => format!("?? KeyExchangeConfirm ??"),
-        Message::Unencrypted(_) => format!("?? Unencrypted ??"),
+        } => format!("{:?}", msg),
+        Message::Unencrypted(_) => "?? Unencrypted ??".to_string(),
     };
 
     print(&s, input)
@@ -136,7 +124,7 @@ impl Output {
         Self { tx, th, input }
     }
 
-    pub fn print<'a>(&self, message: impl Into<Printable>) {
+    pub fn print(&self, message: impl Into<Printable>) {
         let printable = message.into();
         let _ = self.tx.send(printable);
     }

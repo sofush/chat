@@ -24,26 +24,11 @@ pub enum Message {
     AssignId { id: String },
 
     /// Initiates a Diffie-Hellman key exchange.
-    KeyExchangeInit {
+    KeyExchange {
         sender_id: String,
         recipient_id: String,
 
         /// Sender's ephemeral DH public key.
         public_key: String,
-    },
-
-    /// Responds to a DH key exchange request.
-    KeyExchangeResponse {
-        sender_id: String,
-        recipient_id: String,
-
-        /// Responder's ephemeral DH public key.
-        public_key: String,
-    },
-
-    /// Optional confirmation that both parties derived the key successfully.
-    KeyExchangeConfirm {
-        sender_id: String,
-        recipient_id: String,
     },
 }

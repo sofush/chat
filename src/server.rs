@@ -1,9 +1,12 @@
 use std::{
     io,
     net::{SocketAddr, TcpListener},
+    ops::DerefMut,
     sync::{Arc, Mutex},
     thread::{self, JoinHandle},
 };
+
+use owo_colors::OwoColorize as _;
 
 use crate::{message::Message, output::Output, participant::Participant, util};
 
@@ -77,7 +80,17 @@ impl Server {
                         stream,
                         Box::new(broadcast_fn.clone()),
                     ) {
-                        util::print(&output_clone.clone(), "Client connected.");
+                        util::print(
+                            &output_clone.clone(),
+                            format!("New client: {}", uuid.yellow()),
+                        );
+
+                        for participant in c.deref_mut() {
+                            let _ = participant.send(Message::AnnounceJoin {
+                                id: uuid.to_string(),
+                            });
+                        }
+
                         c.push(participant);
                     }
                 }

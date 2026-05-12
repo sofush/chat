@@ -3,14 +3,28 @@ use base64::{Engine as _, engine::general_purpose};
 use hkdf::Hkdf;
 use rand::Rng as _;
 use sha2::Sha256;
+use x25519_dalek::{EphemeralSecret, PublicKey};
 
-pub fn derive_key(shared_secret: &[u8]) -> [u8; 32] {
-    let hk = Hkdf::<Sha256>::new(None, shared_secret);
+pub fn get_public_key_from_bytes(public_key: &[u8]) -> Option<PublicKey> {
+    let Ok(public_key) = general_purpose::STANDARD.decode(public_key) else {
+        return None;
+    };
 
+    let Ok(public_key): Result<[u8; 32], _> = public_key.try_into() else {
+        return None;
+    };
+
+    Some(PublicKey::from(public_key))
+}
+
+pub fn derive_aes_key(
+    secret: EphemeralSecret,
+    peer_public_key: &PublicKey,
+) -> [u8; 32] {
+    let shared_secret = secret.diffie_hellman(&peer_public_key);
+    let hk = Hkdf::<Sha256>::new(None, shared_secret.as_bytes());
     let mut key = [0u8; 32];
-
-    hk.expand(b"aes-key", &mut key).expect("hkdf expand");
-
+    hk.expand(b"aes-key", &mut key).unwrap();
     key
 }
 

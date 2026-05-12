@@ -33,17 +33,17 @@ fn main() -> io::Result<()> {
     let mut client: Option<Client> = None;
 
     loop {
-        if let Some(key) = poll_key_event()? {
-            if handle_key_event(
+        if let Some(key) = poll_key_event()?
+            && handle_key_event(
                 key,
                 &mut input,
                 &mut server,
                 &mut client,
                 addr,
                 output.clone(),
-            )? {
-                break;
-            }
+            )?
+        {
+            break;
         }
 
         util::print_prompt(&output);
@@ -136,7 +136,7 @@ fn handle_command(
     }
 
     if let Some(c) = client {
-        c.send(message::Message::Unencrypted(input.to_string()));
+        let _ = c.send(message::Message::Unencrypted(input.to_string()));
         util::print(&output, input);
         return Ok(());
     }
