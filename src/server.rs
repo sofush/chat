@@ -25,7 +25,7 @@ fn handle_participant_msg(
 
     for c in &mut *connections {
         if c.send(message.clone()).is_err() {
-            util::print(&output, "Failed to broadcast a message.");
+            util::error(&output, "Failed to broadcast a message.");
         }
     }
 }
@@ -80,7 +80,7 @@ impl Server {
                         stream,
                         Box::new(broadcast_fn.clone()),
                     ) {
-                        util::print(
+                        util::debug(
                             &output_clone.clone(),
                             format!("New client: {}", uuid.yellow()),
                         );

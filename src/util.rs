@@ -1,6 +1,7 @@
 use std::{
     io::BufReader,
     net::TcpStream,
+    slice::RSplitNMut,
     sync::{Arc, Mutex},
 };
 
@@ -9,7 +10,7 @@ use serde::Deserialize as _;
 
 use crate::{
     message::Message,
-    output::{Output, Printable},
+    output::{Label, Output, Printable},
 };
 
 pub fn read_from_stream(stream: TcpStream, callback: Box<dyn Fn(Message)>) {
@@ -26,23 +27,36 @@ pub fn read_from_stream(stream: TcpStream, callback: Box<dyn Fn(Message)>) {
     }
 }
 
-pub fn warn(output: &Arc<Mutex<Output>>, message: impl Into<Printable>) {
-    if let Ok(output) = output.lock() {
-        let warn = " WARN ".black().on_yellow().to_string();
-        let printable: Printable = message.into();
-
-        let s = match printable {
-            Printable::String(s) => s,
-            Printable::Message(message) => format!("{message:?}"),
-        };
-
-        output.print(format!("{warn} {}", s.yellow()));
-    }
+pub fn info(output: &Arc<Mutex<Output>>, message: impl Into<Printable>) {
+    print(output, Label::Info, message)
 }
 
-pub fn print(output: &Arc<Mutex<Output>>, message: impl Into<Printable>) {
+pub fn error(output: &Arc<Mutex<Output>>, message: impl Into<Printable>) {
+    print(output, Label::Error, message)
+}
+
+pub fn debug(output: &Arc<Mutex<Output>>, message: impl Into<Printable>) {
+    print(output, Label::Debug, message)
+}
+
+pub fn warn(output: &Arc<Mutex<Output>>, message: impl Into<Printable>) {
+    print(output, Label::Warn, message)
+}
+
+pub fn print(
+    output: &Arc<Mutex<Output>>,
+    label: Label,
+    message: impl Into<Printable>,
+) {
+    let mut printable: Printable = message.into();
+
+    match &mut printable {
+        Printable::String { s: _, label: l } => *l = label,
+        Printable::Message { msg: _, label: l } => *l = label,
+    }
+
     if let Ok(output) = output.lock() {
-        output.print(message);
+        output.print(printable);
     }
 }
 

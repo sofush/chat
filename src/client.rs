@@ -3,15 +3,21 @@ use std::{
     io::{self, Write},
     net::{SocketAddr, TcpStream},
     ops::DerefMut,
-    sync::{Arc, Mutex},
+    sync::{Arc, LockResult, Mutex},
     thread::{self, JoinHandle},
     time::Duration,
 };
 
 use base64::{Engine as _, engine::general_purpose};
+use crossterm::style::Stylize;
 use x25519_dalek::{EphemeralSecret, PublicKey};
 
-use crate::{crypto, message::Message, output::Output, util};
+use crate::{
+    crypto,
+    message::Message,
+    output::{Label, Output},
+    util,
+};
 
 pub struct PeerStatus {
     has_sent_public_key: bool,
@@ -68,14 +74,25 @@ impl Client {
         })
     }
 
-    pub fn send(&mut self, msg: Message) -> std::io::Result<()> {
-        if let Ok(mut write) = self.write.lock()
-            && let Ok(s) = serde_json::to_string(&msg)
-        {
-            writeln!(write, "{s}")?;
-        }
+    pub fn send(&mut self, plaintext: String) {
+        let Ok(mut data) = self.data.lock() else {
+            return;
+        };
 
-        Ok(())
+        let Ok(mut write) = self.write.lock() else {
+            return;
+        };
+
+        let keys = data.peers.keys().cloned().collect::<Vec<_>>();
+
+        for peer_id in keys {
+            send_encrypted(
+                data.deref_mut(),
+                write.deref_mut(),
+                peer_id.to_string(),
+                plaintext.clone(),
+            );
+        }
     }
 }
 
@@ -109,15 +126,19 @@ fn handle_read(
         return;
     };
 
-    util::print(&output, msg.clone());
+    util::debug(&output, msg.clone());
 
     match msg {
         Message::AssignId { id } => {
             data.id = Some(id);
         }
-        Message::AnnounceJoin { id: peer_id } => {
-            do_key_exchange(data.deref_mut(), write.deref_mut(), peer_id, None)
-        }
+        Message::AnnounceJoin { id: peer_id } => do_key_exchange(
+            data.deref_mut(),
+            write.deref_mut(),
+            peer_id,
+            None,
+            output.clone(),
+        ),
         Message::KeyExchange {
             sender_id: peer_id,
             recipient_id,
@@ -142,6 +163,7 @@ fn handle_read(
                 write.deref_mut(),
                 peer_id,
                 Some(public_key),
+                output.clone(),
             );
         }
         Message::Encrypted {
@@ -149,7 +171,23 @@ fn handle_read(
             recipient_id,
             ciphertext,
             nonce,
-        } => todo!(),
+        } => {
+            let Some(id) = data.id.as_ref() else {
+                return;
+            };
+
+            if recipient_id != *id {
+                return;
+            };
+
+            recv_encrypted(
+                data.deref_mut(),
+                sender_id,
+                ciphertext,
+                nonce,
+                output,
+            )
+        }
         _ => (),
     }
 }
@@ -159,6 +197,7 @@ fn do_key_exchange(
     write: &mut TcpStream,
     peer_id: String,
     peer_public_key: Option<PublicKey>,
+    output: Arc<Mutex<Output>>,
 ) {
     let Some(my_id) = data.id.clone() else {
         return;
@@ -170,6 +209,11 @@ fn do_key_exchange(
         && let Some(secret) = status.my_secret.take()
     {
         let aes_key = crypto::derive_aes_key(secret, &ppk);
+        let b64_aes_key = general_purpose::STANDARD.encode(aes_key);
+        util::debug(
+            &output,
+            format!("Derived AES key: {}", b64_aes_key.yellow().bold()),
+        );
         status.aes_key = Some(aes_key);
     }
 
@@ -188,31 +232,51 @@ fn do_key_exchange(
     }
 }
 
-// pub fn send_encrypted(&mut self, recipient_id: String, plaintext: String) {
-//     let key = {
-//         let data = self.data.lock().unwrap();
-//
-//         data.peers.iter().find_map(|p| {
-//             if let PeerStatus::Encrypted { peer_id, aes_key } = p {
-//                 if peer_id == &recipient_id {
-//                     return Some(*aes_key);
-//                 }
-//             }
-//
-//             None
-//         })
-//     };
-//
-//     let Some(key) = key else {
-//         return;
-//     };
-//
-//     let (nonce, ciphertext) = crypto::encrypt_message(&key, &plaintext);
-//
-//     self.send(Message::Encrypted {
-//         sender_id: self.id().unwrap(),
-//         recipient_id,
-//         nonce,
-//         ciphertext,
-//     });
-// }
+pub fn send_encrypted(
+    data: &mut ClientData,
+    write: &mut TcpStream,
+    peer_id: String,
+    plaintext: String,
+) {
+    let Some(my_id) = data.id.clone() else {
+        return;
+    };
+
+    let Some(aes_key) = data.get_status(&peer_id).aes_key else {
+        return;
+    };
+
+    let (nonce, ciphertext) = crypto::encrypt_message(&aes_key, &plaintext);
+
+    let msg = Message::Encrypted {
+        sender_id: my_id,
+        recipient_id: peer_id,
+        nonce,
+        ciphertext,
+    };
+
+    let serialized_message = serde_json::to_string(&msg).unwrap();
+    let _ = writeln!(write, "{serialized_message}");
+}
+
+fn recv_encrypted(
+    data: &mut ClientData,
+    peer_id: String,
+    ciphertext: String,
+    nonce: String,
+    output: Arc<Mutex<Output>>,
+) {
+    let Some(aes_key) = data.get_status(&peer_id).aes_key else {
+        return;
+    };
+
+    if let Some(plaintext) =
+        crypto::decrypt_message(&aes_key, &nonce, &ciphertext)
+    {
+        util::print(
+            &output,
+            Label::Info,
+            format!("{} {plaintext}", (peer_id + ":").yellow().bold()),
+        );
+    };
+}

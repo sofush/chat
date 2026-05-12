@@ -5,10 +5,12 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use crossterm::event::KeyModifiers;
+use crossterm::style::Stylize;
 use crossterm::{
     event::{self, Event, KeyCode, KeyEvent},
     terminal,
 };
+use owo_colors::OwoColorize as _;
 
 use crate::client::Client;
 use crate::output::Output;
@@ -131,13 +133,13 @@ fn handle_command(
     }
 
     if input.starts_with("/") {
-        util::print(&output, format!("Unrecognized command: {input}"));
+        util::error(&output, format!("Unrecognized command: {input}"));
         return Ok(());
     }
 
     if let Some(c) = client {
-        let _ = c.send(message::Message::Unencrypted(input.to_string()));
-        util::print(&output, input);
+        let _ = c.send(input.to_string());
+        util::info(&output, format!("{} {input}", "You:".yellow().bold()));
         return Ok(());
     }
 
@@ -162,7 +164,7 @@ fn try_host(
     if let Ok(mut srv) = Server::new(addr, output.clone()) {
         srv.host()?;
         *server = Some(srv);
-        util::print(&output, format!("Listening on {addr}!"));
+        util::info(&output, format!("Listening on {}!", addr.yellow().bold()));
     }
 
     Ok(true)
@@ -178,7 +180,10 @@ fn try_connect(
         return Ok(false);
     }
 
-    util::print(&output, format!("Connecting to {addr}..."));
+    util::info(
+        &output,
+        format!("Connecting to {}...", addr.yellow().bold()),
+    );
 
     if let Ok(c) = Client::new(addr, output.clone()) {
         *client = Some(c);
@@ -190,6 +195,6 @@ fn try_connect(
         "Could not connect."
     };
 
-    util::print(&output, status);
+    util::info(&output, status);
     Ok(true)
 }
