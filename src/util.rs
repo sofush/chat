@@ -1,11 +1,9 @@
 use std::{
     io::BufReader,
     net::TcpStream,
-    slice::RSplitNMut,
     sync::{Arc, Mutex},
 };
 
-use owo_colors::OwoColorize as _;
 use serde::Deserialize as _;
 
 use crate::{

@@ -21,7 +21,7 @@ pub fn derive_aes_key(
     secret: EphemeralSecret,
     peer_public_key: &PublicKey,
 ) -> [u8; 32] {
-    let shared_secret = secret.diffie_hellman(&peer_public_key);
+    let shared_secret = secret.diffie_hellman(peer_public_key);
     let hk = Hkdf::<Sha256>::new(None, shared_secret.as_bytes());
     let mut key = [0u8; 32];
     hk.expand(b"aes-key", &mut key).unwrap();

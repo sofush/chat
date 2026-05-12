@@ -3,7 +3,7 @@ use std::{
     io::{self, Write},
     net::{SocketAddr, TcpStream},
     ops::DerefMut,
-    sync::{Arc, LockResult, Mutex},
+    sync::{Arc, Mutex},
     thread::{self, JoinHandle},
     time::Duration,
 };
@@ -31,6 +31,7 @@ struct ClientData {
     peers: HashMap<String, PeerStatus>,
 }
 
+#[allow(unused)]
 pub struct Client {
     write: Arc<Mutex<TcpStream>>,
     reader: JoinHandle<()>,
@@ -232,7 +233,7 @@ fn do_key_exchange(
     }
 }
 
-pub fn send_encrypted(
+fn send_encrypted(
     data: &mut ClientData,
     write: &mut TcpStream,
     peer_id: String,

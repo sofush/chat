@@ -7,6 +7,7 @@ use std::{
 use crate::{message::Message, util};
 use uuid::Uuid;
 
+#[allow(unused)]
 pub struct Participant {
     write: TcpStream,
     id: Uuid,
@@ -39,9 +40,5 @@ impl Participant {
         let serialized = serde_json::to_string(&msg)?;
         let _ = writeln!(self.write, "{serialized}");
         Ok(())
-    }
-
-    pub fn id(&self) -> String {
-        self.id.to_string()
     }
 }

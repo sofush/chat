@@ -138,7 +138,7 @@ fn handle_command(
     }
 
     if let Some(c) = client {
-        let _ = c.send(input.to_string());
+        c.send(input.to_string());
         util::info(&output, format!("{} {input}", "You:".yellow().bold()));
         return Ok(());
     }

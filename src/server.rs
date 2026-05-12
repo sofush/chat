@@ -30,6 +30,7 @@ fn handle_participant_msg(
     }
 }
 
+#[allow(unused)]
 pub struct Server {
     addr: SocketAddr,
     connections: Arc<Mutex<Vec<Participant>>>,

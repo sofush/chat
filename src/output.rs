@@ -138,6 +138,7 @@ fn clear_line() -> io::Result<()> {
     )
 }
 
+#[allow(unused)]
 pub struct Output {
     tx: mpsc::SyncSender<Printable>,
     th: JoinHandle<()>,
