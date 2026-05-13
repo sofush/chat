@@ -80,7 +80,7 @@ fn print(s: &str, label: Label, input: &str, debug: bool) -> io::Result<()> {
         return Ok(());
     }
 
-    let now = format!(" {} ", Local::now().format("%Y-%m-%dT%H:%M:%SZ"));
+    let now = format!(" {} ", Local::now().format("%Y-%m-%d %H:%M:%S"));
     let styled_now = now.black().on_yellow().bold().to_string();
     let mut width = ansi_width::ansi_width(&styled_now);
 
