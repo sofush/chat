@@ -6,12 +6,23 @@ use std::{
     thread::{self, JoinHandle},
 };
 
+use crate::{message::Message, output::Output, participant::Participant, util};
+use openidconnect::AccessToken;
 use owo_colors::OwoColorize as _;
 
-use crate::{message::Message, output::Output, participant::Participant, util};
+pub fn authenticate_participant(
+    output: Arc<Mutex<Output>>,
+    access_token: &AccessToken,
+) -> bool {
+    let token = access_token.secret();
 
-fn authorize_message(message: &Message) -> bool {
-    true
+    match crate::jwt::verify_jwt(token) {
+        Ok(_) => true,
+        Err(e) => {
+            util::error(&output, format!("Auth failed: {e}"));
+            false
+        }
+    }
 }
 
 fn handle_participant_msg(
@@ -23,8 +34,14 @@ fn handle_participant_msg(
         return;
     };
 
-    if !authorize_message(&message) {
-        return;
+    if let Message::Authenticate { access_token } = &message {
+        if !authenticate_participant(output.clone(), access_token) {
+            util::error(
+                &output,
+                "Authentication for a client failed.".red().to_string(),
+            );
+            return;
+        }
     }
 
     for c in &mut *connections {

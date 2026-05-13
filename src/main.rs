@@ -18,13 +18,15 @@ use crate::server::Server;
 
 mod client;
 mod crypto;
+mod jwt;
 mod message;
+mod openid;
 mod output;
 mod participant;
 mod server;
 mod util;
 
-fn main() -> io::Result<()> {
+fn main() -> anyhow::Result<()> {
     terminal::enable_raw_mode()?;
 
     let output = Arc::new(Mutex::new(Output::new()));

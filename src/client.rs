@@ -1,6 +1,6 @@
 use std::{
     collections::HashMap,
-    io::{self, Write},
+    io::Write,
     net::{SocketAddr, TcpStream},
     ops::DerefMut,
     sync::{Arc, Mutex},
@@ -10,11 +10,13 @@ use std::{
 
 use base64::{Engine as _, engine::general_purpose};
 use crossterm::style::Stylize;
+use openidconnect::AccessToken;
 use x25519_dalek::{EphemeralSecret, PublicKey};
 
 use crate::{
     crypto,
     message::Message,
+    openid,
     output::{Label, Output},
     util,
 };
@@ -43,7 +45,7 @@ impl Client {
     pub fn new(
         addr: SocketAddr,
         output: Arc<Mutex<Output>>,
-    ) -> io::Result<Self> {
+    ) -> anyhow::Result<Self> {
         let write = TcpStream::connect_timeout(&addr, Duration::from_secs(5))?;
         let read = write.try_clone()?;
         let write = Arc::new(Mutex::new(write));
@@ -67,12 +69,26 @@ impl Client {
         let reader =
             thread::spawn(move || util::read_from_stream(read, Box::new(cb)));
 
-        Ok(Self {
+        let mut this = Self {
             write,
             reader,
             data,
             output,
-        })
+        };
+
+        this.authenticate()?;
+        Ok(this)
+    }
+
+    pub fn authenticate(&mut self) -> anyhow::Result<()> {
+        let mut write = self
+            .write
+            .lock()
+            .map_err(|_| anyhow::anyhow!("Could not lock write."))?;
+        let access_token = openid::authorize(self.output.clone())?;
+        let authenticate_msg = Message::Authenticate { access_token };
+        writeln!(write, "{}", serde_json::to_string(&authenticate_msg)?)?;
+        Ok(())
     }
 
     pub fn send(&mut self, plaintext: String) {

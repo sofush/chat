@@ -1,9 +1,16 @@
+use openidconnect::AccessToken;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum Message {
+    Authenticate {
+        access_token: AccessToken,
+    },
+
     /// Announcement that a user has connected to the chat room.
-    AnnounceJoin { id: String },
+    AnnounceJoin {
+        id: String,
+    },
 
     /// A text message encrypted with the established shared AES key.
     Encrypted {
@@ -18,7 +25,9 @@ pub enum Message {
     },
 
     /// A message sent from server to client, informing the client of their ID.
-    AssignId { id: String },
+    AssignId {
+        id: String,
+    },
 
     /// Initiates a Diffie-Hellman key exchange.
     KeyExchange {
