@@ -19,10 +19,6 @@ fn handle_participant_msg(
     connections: Arc<Mutex<Vec<Participant>>>,
     output: Arc<Mutex<Output>>,
 ) {
-    if matches!(message, Message::Unencrypted(_)) {
-        return;
-    }
-
     let Ok(mut connections) = connections.lock() else {
         return;
     };

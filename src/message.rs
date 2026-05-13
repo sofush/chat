@@ -5,9 +5,6 @@ pub enum Message {
     /// Announcement that a user has connected to the chat room.
     AnnounceJoin { id: String },
 
-    /// Internal only. The user has entered an unencrypted message in the chat.
-    Unencrypted(String),
-
     /// A text message encrypted with the established shared AES key.
     Encrypted {
         sender_id: String,
