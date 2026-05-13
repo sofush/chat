@@ -13,14 +13,14 @@ use owo_colors::OwoColorize as _;
 pub fn authenticate_participant(
     output: Arc<Mutex<Output>>,
     access_token: &AccessToken,
-) -> bool {
+) -> Option<String> {
     let token = access_token.secret();
 
     match crate::jwt::verify_jwt(token) {
-        Ok(_) => true,
+        Ok(username) => Some(username),
         Err(e) => {
             util::error(&output, format!("Auth failed: {e}"));
-            false
+            None
         }
     }
 }
@@ -35,13 +35,20 @@ fn handle_participant_msg(
     };
 
     if let Message::Authenticate { access_token } = &message {
-        if !authenticate_participant(output.clone(), access_token) {
+        let Some(username) =
+            authenticate_participant(output.clone(), access_token)
+        else {
             util::error(
                 &output,
                 "Authentication for a client failed.".red().to_string(),
             );
             return;
-        }
+        };
+
+        util::info(
+            &output,
+            format!("User {} has been authorized.", username.yellow().bold()),
+        );
     }
 
     for c in &mut *connections {

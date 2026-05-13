@@ -160,11 +160,19 @@ pub fn authorize(output: Arc<Mutex<Output>>) -> anyhow::Result<AccessToken> {
 
     // The authenticated user's identity is now available. See the IdTokenClaims struct for a
     // complete listing of the available claims.
+    let subject = claims
+        .preferred_username()
+        .map(|user| user.to_string())
+        .unwrap_or(claims.subject().to_string())
+        .yellow()
+        .bold()
+        .to_string();
+
     util::info(
         &output,
         format!(
             "User {} with e-mail address {} has authenticated successfully",
-            claims.subject().to_string().yellow().bold().to_string(),
+            subject,
             claims
                 .email()
                 .map(|email| email.as_str())

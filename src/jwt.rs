@@ -1,6 +1,8 @@
 #![allow(unused)]
 
-use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode, decode_header};
+use jsonwebtoken::{
+    Algorithm, DecodingKey, TokenData, Validation, decode, decode_header,
+};
 use once_cell::sync::Lazy;
 use serde::Deserialize;
 use std::sync::RwLock;
@@ -8,25 +10,9 @@ use std::sync::RwLock;
 #[derive(Debug, Deserialize)]
 struct Claims {
     iss: String,
-    aud: Audience,
     exp: usize,
     sub: String,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(untagged)]
-enum Audience {
-    Single(String),
-    Multiple(Vec<String>),
-}
-
-impl Audience {
-    fn contains(&self, expected: &str) -> bool {
-        match self {
-            Audience::Single(a) => a == expected,
-            Audience::Multiple(v) => v.iter().any(|a| a == expected),
-        }
-    }
+    preferred_username: String,
 }
 
 const ISSUER: &str = "http://localhost:8080/realms/my-realm";
@@ -57,17 +43,17 @@ fn get_rsa_key(
         .find(|k| k["kid"].as_str() == Some(&kid))
         .ok_or_else(|| anyhow::anyhow!("No matching key for kid"))?;
 
-    let n = key["n"]
+    let modulus = key["n"]
         .as_str()
         .ok_or_else(|| anyhow::anyhow!("Missing n"))?;
-    let e = key["e"]
+    let exponent = key["e"]
         .as_str()
         .ok_or_else(|| anyhow::anyhow!("Missing e"))?;
 
-    Ok(DecodingKey::from_rsa_components(n, e)?)
+    Ok(DecodingKey::from_rsa_components(modulus, exponent)?)
 }
 
-pub fn verify_jwt(token: &str) -> anyhow::Result<()> {
+pub fn verify_jwt(token: &str) -> anyhow::Result<String> {
     let jwks = fetch_jwks()?;
     let key = get_rsa_key(token, &jwks)?;
 
@@ -75,7 +61,6 @@ pub fn verify_jwt(token: &str) -> anyhow::Result<()> {
     validation.set_issuer(&[ISSUER]);
     validation.set_audience(&["account"]);
 
-    decode::<Claims>(token, &key, &validation)?;
-
-    Ok(())
+    let token_data = decode::<Claims>(token, &key, &validation)?;
+    Ok(token_data.claims.preferred_username)
 }
