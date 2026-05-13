@@ -13,7 +13,7 @@ use crossterm::{
     cursor, execute,
     terminal::{self, ClearType},
 };
-use owo_colors::OwoColorize as _;
+use owo_colors::{OwoColorize as _, Rgb};
 
 use crate::message::Message;
 
@@ -33,9 +33,11 @@ impl Label {
             Label::Debug => {
                 " DEBUG ".black().on_bright_black().bold().to_string()
             }
-            Label::Input => {
-                " INPUT ".black().on_bright_blue().bold().to_string()
-            }
+            Label::Input => " INPUT "
+                .fg_rgb::<34, 34, 59>()
+                .bg_rgb::<181, 101, 118>()
+                .bold()
+                .to_string(),
             Label::Unlabeled => "".to_string(),
             Label::Info => " INFO ".white().on_green().bold().to_string(),
             Label::Error => " ERROR ".black().on_red().bold().to_string(),
@@ -81,7 +83,11 @@ fn print(s: &str, label: Label, input: &str, debug: bool) -> io::Result<()> {
     }
 
     let now = format!(" {} ", Local::now().format("%Y-%m-%d %H:%M:%S"));
-    let styled_now = now.black().on_yellow().bold().to_string();
+    let styled_now = now
+        .fg_rgb::<154, 140, 152>()
+        .bg_rgb::<34, 34, 59>()
+        .bold()
+        .to_string();
     let mut width = ansi_width::ansi_width(&styled_now);
 
     clear_line()?;
