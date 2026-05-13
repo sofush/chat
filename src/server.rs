@@ -10,6 +10,10 @@ use owo_colors::OwoColorize as _;
 
 use crate::{message::Message, output::Output, participant::Participant, util};
 
+fn authorize_message(message: &Message) -> bool {
+    true
+}
+
 fn handle_participant_msg(
     message: Message,
     connections: Arc<Mutex<Vec<Participant>>>,
@@ -22,6 +26,10 @@ fn handle_participant_msg(
     let Ok(mut connections) = connections.lock() else {
         return;
     };
+
+    if !authorize_message(&message) {
+        return;
+    }
 
     for c in &mut *connections {
         if c.send(message.clone()).is_err() {
