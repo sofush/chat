@@ -63,7 +63,7 @@ pub fn authorize(output: Arc<Mutex<Output>>) -> anyhow::Result<AccessToken> {
 
     // This is the URL you should redirect the user to, in order to trigger the authorization
     // process.
-    webbrowser::open(&auth_url.to_string())?;
+    webbrowser::open(auth_url.as_str())?;
 
     util::info(
         &output,
@@ -180,7 +180,6 @@ pub fn authorize(output: Arc<Mutex<Output>>) -> anyhow::Result<AccessToken> {
                 .to_string()
                 .yellow()
                 .bold()
-                .to_string(),
         ),
     );
 

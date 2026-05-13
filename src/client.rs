@@ -10,7 +10,6 @@ use std::{
 
 use base64::{Engine as _, engine::general_purpose};
 use crossterm::style::Stylize;
-use openidconnect::AccessToken;
 use x25519_dalek::{EphemeralSecret, PublicKey};
 
 use crate::{
