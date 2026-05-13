@@ -13,7 +13,7 @@ use crossterm::{
     cursor, execute,
     terminal::{self, ClearType},
 };
-use owo_colors::{OwoColorize as _, Rgb};
+use owo_colors::OwoColorize as _;
 
 use crate::message::Message;
 
