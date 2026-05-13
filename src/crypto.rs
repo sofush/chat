@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 use aes_gcm::{Aes256Gcm, KeyInit as _, Nonce, aead::Aead as _};
 use base64::{Engine as _, engine::general_purpose};
 use hkdf::Hkdf;
