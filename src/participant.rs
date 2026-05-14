@@ -5,18 +5,18 @@ use std::{
 };
 
 use crate::{message::Message, util};
-use uuid::Uuid;
 
 #[allow(unused)]
 pub struct Participant {
     write: TcpStream,
-    id: Uuid,
+    id: String,
     reader: JoinHandle<()>,
+    username: Option<String>,
 }
 
 impl Participant {
     pub fn new(
-        id: Uuid,
+        id: String,
         stream: TcpStream,
         callback: Box<dyn Fn(Message) + Send>,
     ) -> io::Result<Self> {
@@ -27,9 +27,10 @@ impl Participant {
         });
 
         let mut this = Self {
-            id,
+            id: id.clone(),
             write: stream,
             reader,
+            username: None,
         };
 
         this.send(Message::AssignId { id: id.to_string() })?;
@@ -40,5 +41,17 @@ impl Participant {
         let serialized = serde_json::to_string(&msg)?;
         let _ = writeln!(self.write, "{serialized}");
         Ok(())
+    }
+
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+
+    pub fn username(&self) -> Option<&str> {
+        self.username.as_deref()
+    }
+
+    pub fn set_username(&mut self, username: String) {
+        self.username = Some(username);
     }
 }

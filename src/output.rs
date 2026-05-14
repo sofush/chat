@@ -124,11 +124,14 @@ fn print_message(
     debug: bool,
 ) -> io::Result<()> {
     let s = match &msg {
-        Message::AnnounceJoin { id } => {
-            format!("{} has joined the chat", id.clone().yellow())
+        Message::AnnounceJoin { id: _, username } => {
+            format!("{} has joined the chat", username.clone().yellow().bold())
         }
         Message::AssignId { id } => {
-            format!("You have been assigned the ID: {}", id.clone().yellow())
+            format!(
+                "You have been assigned the ID: {}",
+                id.clone().yellow().bold()
+            )
         }
         _ => return Ok(()),
     };
@@ -158,7 +161,7 @@ impl Output {
         let input = Arc::new(Mutex::new(String::new()));
         let input_clone = input.clone();
 
-        let debug = Arc::new(AtomicBool::new(false));
+        let debug = Arc::new(AtomicBool::new(true));
         let debug_clone = debug.clone();
 
         let th = thread::spawn(move || {

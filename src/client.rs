@@ -21,6 +21,7 @@ use crate::{
 };
 
 pub struct PeerStatus {
+    username: Option<String>,
     has_sent_public_key: bool,
     my_secret: Option<EphemeralSecret>,
     my_public_key: PublicKey,
@@ -123,6 +124,7 @@ impl ClientData {
                 my_secret: Some(secret),
                 my_public_key: public_key,
                 aes_key: None,
+                username: None,
             }
         })
     }
@@ -148,13 +150,22 @@ fn handle_read(
         Message::AssignId { id } => {
             data.id = Some(id);
         }
-        Message::AnnounceJoin { id: peer_id } => do_key_exchange(
-            data.deref_mut(),
-            write.deref_mut(),
-            peer_id,
-            None,
-            output.clone(),
-        ),
+        Message::AnnounceJoin {
+            id: peer_id,
+            username,
+        } => {
+            do_key_exchange(
+                data.deref_mut(),
+                write.deref_mut(),
+                peer_id.clone(),
+                None,
+                output.clone(),
+            );
+
+            if let Some(peer) = data.peers.get_mut(peer_id.as_str()) {
+                peer.username = Some(username);
+            }
+        }
         Message::KeyExchange {
             sender_id: peer_id,
             recipient_id,
@@ -203,6 +214,19 @@ fn handle_read(
                 nonce,
                 output,
             )
+        }
+        Message::AnnounceUsername { username, id } => {
+            let status = data.get_status(id.as_str());
+            status.username = Some(username.clone());
+
+            util::debug(
+                &output,
+                format!(
+                    "Username {} assigned to {}",
+                    username.yellow().bold(),
+                    id.clone().yellow().bold()
+                ),
+            );
         }
         _ => (),
     }
@@ -282,9 +306,13 @@ fn recv_encrypted(
     nonce: String,
     output: Arc<Mutex<Output>>,
 ) {
-    let Some(aes_key) = data.get_status(&peer_id).aes_key else {
+    let status = data.get_status(&peer_id);
+
+    let Some(aes_key) = status.aes_key else {
         return;
     };
+
+    let username = status.username.clone().unwrap_or(peer_id.clone());
 
     if let Some(plaintext) =
         crypto::decrypt_message(&aes_key, &nonce, &ciphertext)
@@ -292,7 +320,7 @@ fn recv_encrypted(
         util::print(
             &output,
             Label::Info,
-            format!("{} {plaintext}", (peer_id + ":").yellow().bold()),
+            format!("{} {plaintext}", (username + ":").yellow().bold()),
         );
     };
 }

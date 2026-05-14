@@ -26,6 +26,7 @@ pub fn authenticate_participant(
 }
 
 fn handle_participant_msg(
+    id: String,
     message: Message,
     connections: Arc<Mutex<Vec<Participant>>>,
     output: Arc<Mutex<Output>>,
@@ -45,6 +46,40 @@ fn handle_participant_msg(
             return;
         };
 
+        if let Some(newly_joined) =
+            connections.iter_mut().find(|c| c.id() == id)
+        {
+            newly_joined.set_username(username.clone());
+        }
+
+        let id_username_pairs = connections
+            .iter()
+            .filter_map(|c| {
+                let username = c.username().map(|s| s.to_owned())?;
+                let id = c.id().to_owned();
+                let pair = (id, username);
+                Some(pair)
+            })
+            .collect::<Vec<_>>();
+
+        if let Some(newly_joined) =
+            connections.iter_mut().find(|c| c.id() == id)
+        {
+            for (peer_id, username) in id_username_pairs {
+                let _ = newly_joined.send(Message::AnnounceUsername {
+                    id: peer_id.to_string(),
+                    username,
+                });
+            }
+        }
+
+        for participant in connections.deref_mut() {
+            let _ = participant.send(Message::AnnounceJoin {
+                id: id.to_string(),
+                username: username.clone(),
+            });
+        }
+
         util::info(
             &output,
             format!("User {} has been authorized.", username.yellow().bold()),
@@ -52,6 +87,10 @@ fn handle_participant_msg(
     }
 
     for c in &mut *connections {
+        if c.id() == id {
+            continue;
+        }
+
         if c.send(message.clone()).is_err() {
             util::error(&output, "Failed to broadcast a message.");
         }
@@ -89,8 +128,9 @@ impl Server {
 
         let broadcast_fn_connections = connections.clone();
         let output_clone = self.output.clone();
-        let broadcast_fn = move |msg: Message| {
+        let broadcast_fn = move |id: String, msg: Message| {
             handle_participant_msg(
+                id,
                 msg,
                 broadcast_fn_connections.clone(),
                 output_clone.clone(),
@@ -100,28 +140,28 @@ impl Server {
         let output_clone = self.output.clone();
         self.connection_thread = Some(thread::spawn(move || {
             loop {
-                if let Ok((stream, _)) = listener.accept() {
-                    let mut c = connections.lock().unwrap();
-                    let uuid = uuid::Uuid::new_v4();
+                let func = broadcast_fn.clone();
 
-                    if let Ok(participant) = Participant::new(
-                        uuid,
-                        stream,
-                        Box::new(broadcast_fn.clone()),
-                    ) {
-                        util::debug(
-                            &output_clone.clone(),
-                            format!("New client: {}", uuid.yellow()),
-                        );
+                let Ok((stream, _)) = listener.accept() else {
+                    break;
+                };
 
-                        for participant in c.deref_mut() {
-                            let _ = participant.send(Message::AnnounceJoin {
-                                id: uuid.to_string(),
-                            });
-                        }
+                let mut c = connections.lock().unwrap();
+                let uuid = uuid::Uuid::new_v4().to_string();
+                let uuid_clone = uuid.clone();
+                let boxed = Box::new(move |msg: Message| {
+                    func(uuid_clone.clone(), msg.clone())
+                });
 
-                        c.push(participant);
-                    }
+                if let Ok(participant) =
+                    Participant::new(uuid.clone(), stream, boxed)
+                {
+                    util::debug(
+                        &output_clone.clone(),
+                        format!("New client: {}", uuid.yellow()),
+                    );
+
+                    c.push(participant);
                 }
             }
         }));

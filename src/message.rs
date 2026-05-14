@@ -10,6 +10,13 @@ pub enum Message {
     /// Announcement that a user has connected to the chat room.
     AnnounceJoin {
         id: String,
+        username: String,
+    },
+
+    /// Announce username to a user that has recently connected to the chat room.
+    AnnounceUsername {
+        id: String,
+        username: String,
     },
 
     /// A text message encrypted with the established shared AES key.
