@@ -61,8 +61,7 @@ pub fn authorize(output: Arc<Mutex<Output>>) -> anyhow::Result<AccessToken> {
         .set_pkce_challenge(pkce_challenge)
         .url();
 
-    // This is the URL you should redirect the user to, in order to trigger the authorization
-    // process.
+    // Open the user's webbrowser so they can log in.
     webbrowser::open(auth_url.as_str())?;
 
     util::info(
