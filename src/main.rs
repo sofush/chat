@@ -126,6 +126,8 @@ fn handle_command(
     addr: SocketAddr,
     output: Arc<Mutex<Output>>,
 ) -> io::Result<()> {
+    util::info(&output, format!("{} {input}", "You:".yellow().bold()));
+
     if try_host(input, server, addr, output.clone())? {
         return Ok(());
     }
@@ -141,7 +143,6 @@ fn handle_command(
 
     if let Some(c) = client {
         c.send(input.to_string());
-        util::info(&output, format!("{} {input}", "You:".yellow().bold()));
         return Ok(());
     }
 
@@ -191,12 +192,11 @@ fn try_connect(
         *client = Some(c);
     }
 
-    let status = if client.is_some() {
-        "Connected!"
+    if client.is_some() {
+        util::info(&output, "Connected!");
     } else {
-        "Could not connect."
+        util::error(&output, "Could not connect.");
     };
 
-    util::error(&output, status);
     Ok(true)
 }
