@@ -197,6 +197,6 @@ fn try_connect(
         "Could not connect."
     };
 
-    util::info(&output, status);
+    util::error(&output, status);
     Ok(true)
 }

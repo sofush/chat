@@ -85,7 +85,13 @@ impl Client {
             .write
             .lock()
             .map_err(|_| anyhow::anyhow!("Could not lock write."))?;
-        let access_token = openid::authorize(self.output.clone())?;
+        let access_token =
+            openid::authorize(self.output.clone()).inspect_err(|e| {
+                util::error(
+                    &self.output,
+                    format!("Failed to authorize with OpenID: {e}"),
+                );
+            })?;
         let authenticate_msg = Message::Authenticate { access_token };
         writeln!(write, "{}", serde_json::to_string(&authenticate_msg)?)?;
         Ok(())

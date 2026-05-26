@@ -13,6 +13,7 @@ use std::net::TcpListener;
 
 use std::io::{BufRead, BufReader};
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 
 use crate::output::Output;
 use crate::util;
@@ -21,6 +22,7 @@ pub fn authorize(output: Arc<Mutex<Output>>) -> anyhow::Result<AccessToken> {
     let http_client = reqwest::blocking::ClientBuilder::new()
         // Following redirects opens the client up to SSRF vulnerabilities.
         .redirect(reqwest::redirect::Policy::none())
+        .timeout(Duration::from_secs(3))
         .build()
         .expect("Client should build");
 
